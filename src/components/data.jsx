@@ -1,0 +1,26 @@
+import { SlHome } from "react-icons/sl";
+import { FaJediOrder, FaUsers } from "react-icons/fa";
+import {
+  MdCategory,
+  MdHomeRepairService,
+  MdSubscriptions,
+  MdContentCopy,
+  MdPayments,
+} from "react-icons/md";
+import { FaBookBookmark } from "react-icons/fa6";
+import { MdDashboardCustomize } from "react-icons/md";
+import { GiCardExchange } from "react-icons/gi";
+import { AiFillProduct } from "react-icons/ai";
+import { FiShoppingCart, FiTag } from "react-icons/fi";
+export const sidebarLinks = [
+  { name: "Dashboard", path: "/", icon: <MdDashboardCustomize /> },
+  { name: "Users", path: "/users", icon: <FaUsers /> },
+  { name: "Categories", path: "/category", icon: <MdCategory /> },
+  { name: "Products", path: "/product", icon: <AiFillProduct /> },
+
+  { name: "Offers", path: "/offer", icon: <FiTag /> },
+  { name: "Orders", path: "/order", icon: <FiShoppingCart /> },
+  { name: "Payment", path: "/payment", icon: <MdPayments /> },
+
+  { name: "Content", path: "/content", icon: <MdContentCopy /> },
+];
