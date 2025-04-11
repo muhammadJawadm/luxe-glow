@@ -5,6 +5,8 @@ const OfferModal = ({ offer, onClose, isOpen }) => {
   const [formData, setFormData] = useState({
     name: "",
     price: "",
+    discount: "",
+    description: "",
     features: [],
   });
 
@@ -23,15 +25,31 @@ const OfferModal = ({ offer, onClose, isOpen }) => {
   }, [isOpen]);
 
   const handleClose = () => {
-    setFormData({ name: "", price: "", features: [] });
+    setFormData({
+      name: "",
+      price: "",
+      discount: "",
+      description: "",
+      features: [],
+    });
     onClose();
   };
 
-  const handleChange = (e) => {};
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
-  const handleSubmit = () => {};
+  const handleSubmit = () => {
+    console.log("Submitted Data:", formData);
+    handleClose();
+  };
 
   if (!isOpen) return null;
+
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/90 z-50">
       <div
@@ -45,36 +63,63 @@ const OfferModal = ({ offer, onClose, isOpen }) => {
         <h2 className="text-xl font-bold mb-4">
           {offer ? "Edit Offer" : "Add New Offer"}
         </h2>
+
+        {/* Image Upload */}
         <div className="w-full mb-4">
           <label className="cursor-pointer block w-full">
             <input type="file" className="hidden" />
             <img
-              src={
-                "https://images.unsplash.com/photo-1606876430311-6b09172238b9?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-              }
-              alt="Restaurant"
+              src="https://images.unsplash.com/photo-1606876430311-6b09172238b9?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+              alt="Offer"
               className="w-full h-48 object-cover border border-gray-300 rounded-lg"
             />
           </label>
         </div>
+
+        {/* Name */}
         <label className="block mb-2 text-sm font-medium">Offer Name</label>
         <input
           type="text"
           name="name"
+          value={formData.name}
           onChange={handleChange}
           className="w-full border rounded p-2 mb-4"
           placeholder="Enter Offer name"
         />
 
+        {/* Price */}
+        <label className="block mb-2 text-sm font-medium">Price</label>
+        <input
+          type="number"
+          name="price"
+          value={formData.price}
+          onChange={handleChange}
+          className="w-full border rounded p-2 mb-4"
+          placeholder="Enter price"
+        />
+
+        {/* Discount */}
+        <label className="block mb-2 text-sm font-medium">Discount (%)</label>
+        <input
+          type="number"
+          name="discount"
+          value={formData.discount}
+          onChange={handleChange}
+          className="w-full border rounded p-2 mb-4"
+          placeholder="Enter discount"
+        />
+
+        {/* Description */}
         <label className="block mb-2 text-sm font-medium">Description</label>
         <textarea
-          type="number"
           name="description"
+          value={formData.description}
           onChange={handleChange}
           className="w-full border rounded p-2 mb-4"
           placeholder="Enter description"
         />
 
+        {/* Buttons */}
         <div className="flex justify-end gap-2">
           <button
             onClick={handleClose}
