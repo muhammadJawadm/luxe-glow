@@ -48,7 +48,7 @@ const Users = () => {
   ];
   return (
     <div>
-      <Header header={"Manage Users"} />
+      <Header header={"Manage Customers"} />
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-8 py-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div className="relative w-full sm:w-96">
@@ -58,7 +58,7 @@ const Users = () => {
             <input
               type="text"
               className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg bg-white "
-              placeholder="Search users..."
+              placeholder="Search customers..."
             />
           </div>
         </div>

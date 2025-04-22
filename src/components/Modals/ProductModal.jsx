@@ -10,13 +10,14 @@ const ProductModal = ({ product, isOpen, onClose }) => {
     price: "",
     location: "",
     category: "",
+    brand: "",
     description: "",
     image: null,
     imagePreview: "",
   });
 
   const categories = ["Sunscreen", "Lipsticks", "Blush", "Clothing", "Other"];
-
+  const brands = ["Entice", "Dermive", "Huda Beauty", "Bonanza", "Other"];
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (modalRef.current && !modalRef.current.contains(event.target)) {
@@ -37,6 +38,7 @@ const ProductModal = ({ product, isOpen, onClose }) => {
       price: "",
       location: "",
       category: "",
+      brand: "",
       description: "",
       image: null,
       imagePreview: "",
@@ -128,8 +130,6 @@ const ProductModal = ({ product, isOpen, onClose }) => {
           className="w-full border rounded p-2 mb-4"
           placeholder="Enter price"
         />
-
-        {/* Category Dropdown */}
         <label className="block mb-2 text-sm font-medium">Category</label>
         <select
           name="category"
@@ -139,6 +139,20 @@ const ProductModal = ({ product, isOpen, onClose }) => {
         >
           <option value="">Select a category</option>
           {categories.map((cat) => (
+            <option key={cat} value={cat}>
+              {cat}
+            </option>
+          ))}
+        </select>
+        <label className="block mb-2 text-sm font-medium">Brand</label>
+        <select
+          name="brand"
+          value={formData.brand}
+          onChange={handleChange}
+          className="w-full border rounded p-2 mb-4"
+        >
+          <option value="">Select a Brand</option>
+          {brands.map((cat) => (
             <option key={cat} value={cat}>
               {cat}
             </option>

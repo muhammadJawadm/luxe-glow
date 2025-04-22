@@ -18,7 +18,7 @@ const Home = () => {
       <div className="max-w-screen-2xl mx-auto">
         <div className="mx-4 sm:mx-9 my-5">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 md:gap-6 2xl:grid-cols-4 2xl:gap-7">
-            <Card title="Users" count="03" icon={FaUsers} link="/users" />
+            <Card title="Customers" count="03" icon={FaUsers} link="/users" />
             <Card
               title="Categories"
               count="03"

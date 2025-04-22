@@ -12,6 +12,8 @@ import Orders from "./pages/Orders/Orders";
 import Offers from "./pages/Offers/Offers";
 import Content from "./pages/Content/Content";
 import Payment from "./pages/Pyament/Payment";
+import Brand from "./pages/Brand/Brand";
+import Settings from "./pages/Settings/Settings";
 
 function App() {
   return (
@@ -23,9 +25,11 @@ function App() {
         <Route path="/product" element={<Products />} />
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/order" element={<Orders />} />
+        <Route path="/brand" element={<Brand />} />
         <Route path="/offer" element={<Offers />} />
         <Route path="/payment" element={<Payment />} />
         <Route path="/content" element={<Content />} />
+        <Route path="/setting" element={<Settings />} />
       </Route>
       <Route path="login" element={<Login />} />
     </Routes>
