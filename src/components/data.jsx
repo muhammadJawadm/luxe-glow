@@ -25,5 +25,5 @@ export const sidebarLinks = [
   { name: "Payment", path: "/payment", icon: <MdPayments /> },
 
   { name: "Content", path: "/content", icon: <MdContentCopy /> },
-  { name: "Settings", path: "/setting", icon: <AiFillSetting /> },
+  { name: "Discount settings", path: "/setting", icon: <AiFillSetting /> },
 ];
