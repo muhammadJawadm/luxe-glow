@@ -12,25 +12,10 @@ import { useState } from "react";
 
 const Sidebar = () => {
   const [showMenu, setShowMenu] = useState(false);
-  const [isSecurityOpen, setIsSecurityOpen] = useState(false);
-  const [isWallOpen, setIsWallOpen] = useState(false);
+  const [isPOSOpen, setIsPOSOpen] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
-
-  const handleWallToggle = () => {
-    if (!isWallOpen) {
-      navigate("/wall/school");
-    }
-    setIsWallOpen((prev) => !prev);
-    setIsSecurityOpen(false);
-  };
-
-  const handleSecurityToggle = () => {
-    if (!isSecurityOpen) {
-      navigate("/security-audit/logs");
-    }
-    setIsSecurityOpen((prev) => !prev);
-    setIsWallOpen(false);
+  const handlePOSToggle = () => {
+    setIsPOSOpen((prev) => !prev);
   };
 
   const isSubLinkActive = (subLinks) =>
@@ -109,26 +94,48 @@ const Sidebar = () => {
                               ? "bg-primary bg-opacity-70 drop-shadow text-gray-50 font-semibold"
                               : "text-gray-600 hover:bg-primary/10 hover:text-primary hover:font-medium"
                           }`}
-                          onClick={
-                            link.name === "Wall"
-                              ? handleWallToggle
-                              : handleSecurityToggle
-                          }
+                          onClick={link.name === "POS" && handlePOSToggle}
                         >
                           {link.icon}
                           <span className="flex-1 ml-3 whitespace-nowrap">
                             {link.name}
                           </span>
-                          {(link.name === "Wall" && isWallOpen) ||
-                          (link.name === "Security & Audit" &&
-                            isSecurityOpen) ? (
-                            <RiArrowUpSFill className="text-2xl" />
-                          ) : (
-                            <MdArrowDropDown className="text-2xl" />
-                          )}
+                          <span className="ml-auto">
+                            {isPOSOpen ? (
+                              <svg
+                                className="w-4 h-4 transition-transform transform rotate-90 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M9 5l7 7-7 7"
+                                />
+                              </svg>
+                            ) : (
+                              <svg
+                                className="w-4 h-4 transition-transform transform text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M9 5l7 7-7 7"
+                                />
+                              </svg>
+                            )}
+                          </span>
                         </button>
-                        {(link.name === "Wall" && isWallOpen) ||
-                        (link.name === "Security & Audit" && isSecurityOpen) ? (
+
+                        {link.name === "POS" && isPOSOpen ? (
                           <ul className="space-y-2 mt-2">
                             {link.subLinks.map((subLink) => (
                               <SidebarLink
@@ -149,8 +156,7 @@ const Sidebar = () => {
                         icon={link.icon}
                         onClick={() => {
                           setShowMenu(false);
-                          setIsWallOpen(false);
-                          setIsSecurityOpen(false);
+                          setIsPOSOpen(false);
                         }}
                       />
                     )}
