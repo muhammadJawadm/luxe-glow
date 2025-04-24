@@ -11,6 +11,8 @@ const CouponModal = ({ isOpen, onClose, coupon, onSave }) => {
       endDate: "",
       usageLimit: "",
       appliesTo: "all",
+      category: "",
+      brands: "",
       active: true,
     }
   );
@@ -42,14 +44,17 @@ const CouponModal = ({ isOpen, onClose, coupon, onSave }) => {
         >
           &#8203;
         </span>
-        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+        <div
+          className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle 
+        sm:max-w-3xl sm:w-full"
+        >
           <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
             <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
               {coupon ? "Edit Coupon" : "Add New Coupon"}
             </h3>
 
             <form onSubmit={handleSubmit}>
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-black  mb-1">
                     Coupon code
@@ -168,6 +173,36 @@ const CouponModal = ({ isOpen, onClose, coupon, onSave }) => {
                     <option value="specific">Specific Products</option>
                     <option value="category">Specific Categories</option>
                     <option value="shipping">Shipping Only</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black  mb-1">
+                    Category
+                  </label>
+                  <select
+                    name="appliesTo"
+                    value={formData.category}
+                    onChange={handleChange}
+                    className="w-full border border-black rounded-md p-2"
+                  >
+                    {["Serums", "Foundations"]?.map((i) => (
+                      <option value="all">{i}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black  mb-1">
+                    Brands
+                  </label>
+                  <select
+                    name="appliesTo"
+                    value={formData.brand}
+                    onChange={handleChange}
+                    className="w-full border border-black rounded-md p-2"
+                  >
+                    {["Serums", "Foundations"]?.map((i) => (
+                      <option value="all">{i}</option>
+                    ))}
                   </select>
                 </div>
 
