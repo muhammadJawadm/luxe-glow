@@ -71,7 +71,7 @@ const CouponModal = ({ isOpen, onClose, coupon, onSave }) => {
 
                 <div>
                   <label className="block text-sm font-medium text-black mb-1">
-                    Discount Type *
+                    Discount Type
                   </label>
                   <select
                     name="discountType"
@@ -87,7 +87,7 @@ const CouponModal = ({ isOpen, onClose, coupon, onSave }) => {
                 <div>
                   <label className="block text-sm font-medium text-black  mb-1">
                     {formData.discountType === "percentage"
-                      ? "Discount % *"
+                      ? "Discount % "
                       : "Discount Amount *"}
                   </label>
                   <input
@@ -133,7 +133,7 @@ const CouponModal = ({ isOpen, onClose, coupon, onSave }) => {
 
                 <div>
                   <label className="block text-sm font-medium text-black  mb-1">
-                    Start Date *
+                    Start Date
                   </label>
                   <input
                     type="date"
@@ -147,7 +147,7 @@ const CouponModal = ({ isOpen, onClose, coupon, onSave }) => {
 
                 <div>
                   <label className="block text-sm font-medium text-black  mb-1">
-                    End Date *
+                    End Date
                   </label>
                   <input
                     type="date"
@@ -161,7 +161,7 @@ const CouponModal = ({ isOpen, onClose, coupon, onSave }) => {
 
                 <div>
                   <label className="block text-sm font-medium text-black  mb-1">
-                    Applies To *
+                    Applies To
                   </label>
                   <select
                     name="appliesTo"
@@ -169,10 +169,9 @@ const CouponModal = ({ isOpen, onClose, coupon, onSave }) => {
                     onChange={handleChange}
                     className="w-full border border-black rounded-md p-2"
                   >
-                    <option value="all">All Products</option>
-                    <option value="specific">Specific Products</option>
-                    <option value="category">Specific Categories</option>
-                    <option value="shipping">Shipping Only</option>
+                    {["Serums", "Foundations", "Brushes"]?.map((i) => (
+                      <option value="all">{i}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
