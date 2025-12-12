@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Header from "../../layouts/partials/header";
-import { FiEdit, FiSearch, FiTrash2, FiTag, FiPercent, FiCalendar, FiPackage } from "react-icons/fi";
+import { FiEdit, FiSearch, FiTrash2, FiTag, FiCalendar, FiPackage } from "react-icons/fi";
 import DeleteModal from "../../components/Modals/DeleteModal";
 import OfferModal from "../../components/Modals/OfferModal";
 import { fetchOffers, deleteOffer } from "../../services/offersServices";
@@ -40,8 +40,6 @@ const Offers = () => {
       setFilteredOffers(offersData);
     } else {
       const filtered = offersData.filter(offer =>
-        offer.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        offer.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         offer.products?.name?.toLowerCase().includes(searchQuery.toLowerCase())
       );
       setFilteredOffers(filtered);
@@ -71,8 +69,6 @@ const Offers = () => {
       const updatedOffers = offersData.filter(offer => offer.id !== offerToDelete.id);
       setOffersData(updatedOffers);
       setFilteredOffers(updatedOffers.filter(offer =>
-        offer.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        offer.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         offer.products?.name?.toLowerCase().includes(searchQuery.toLowerCase())
       ));
       setIsDeleteModalOpen(false);
@@ -104,11 +100,11 @@ const Offers = () => {
     });
   };
 
-  const isOfferActive = (validFrom, validTo) => {
+  const isExpired = (expiryDate) => {
+    if (!expiryDate) return false;
     const now = new Date();
-    const from = new Date(validFrom);
-    const to = new Date(validTo);
-    return now >= from && now <= to;
+    const expiry = new Date(expiryDate);
+    return now > expiry;
   };
 
   return (
@@ -125,7 +121,7 @@ const Offers = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-              placeholder="Search offers..."
+              placeholder="Search by product name..."
             />
           </div>
           <button
@@ -164,32 +160,24 @@ const Offers = () => {
                   key={offer.id}
                   className="relative group bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100"
                 >
-                  {/* Offer Badge */}
-                  <div className="absolute top-3 left-3 z-10">
-                    <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
-                      <FiPercent className="text-sm" />
-                      {offer.discount_percentage}% OFF
-                    </div>
-                  </div>
-
                   {/* Status Badge */}
                   <div className="absolute top-3 right-3 z-10">
-                    {isOfferActive(offer.valid_from, offer.valid_to) ? (
-                      <div className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                    {!isExpired(offer.expire_it) ? (
+                      <div className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
                         Active
                       </div>
                     ) : (
-                      <div className="bg-gray-400 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                      <div className="bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
                         Expired
                       </div>
                     )}
                   </div>
 
-                  {/* Product Image */}
-                  <div className="relative h-48 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
+                  {/* Offer Image */}
+                  <div className="relative h-56 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
                     <img
-                      src={offer.products?.product_images?.[0]?.image_url || "https://via.placeholder.com/400x300?text=No+Image"}
-                      alt={offer.title}
+                      src={offer.image_url || offer.products?.product_images?.[0]?.image_url || "https://via.placeholder.com/400x300?text=No+Image"}
+                      alt={offer.products?.name || "Offer"}
                       className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
                     />
                     {/* Overlay on hover */}
@@ -215,51 +203,53 @@ const Offers = () => {
 
                   {/* Offer Details */}
                   <div className="p-4 space-y-3">
-                    <h3 className="text-lg font-bold text-gray-800 line-clamp-1">
-                      {offer.title || "Untitled Offer"}
-                    </h3>
-
-                    <p className="text-sm text-gray-600 line-clamp-2 min-h-[2.5rem]">
-                      {offer.description || "No description available"}
-                    </p>
-
                     {/* Product Info */}
                     {offer.products && (
-                      <div className="flex items-center gap-2 text-sm text-gray-700 bg-gray-50 rounded-lg p-2">
-                        <FiPackage className="text-primary flex-shrink-0" />
-                        <span className="font-medium truncate">{offer.products.name}</span>
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-800 line-clamp-1 mb-2">
+                          {offer.products.name}
+                        </h3>
+                        <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2">
+                          <FiPackage className="text-primary flex-shrink-0" />
+                          <div className="flex-1">
+                            <p className="text-xs text-gray-500">Category</p>
+                            <p className="font-medium">{offer.products.categories?.name || "N/A"}</p>
+                          </div>
+                        </div>
                       </div>
                     )}
 
-                    {/* Validity Period */}
-                    <div className="pt-2 border-t border-gray-100">
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <FiCalendar className="flex-shrink-0" />
-                        <span>
-                          {formatDate(offer.valid_from)} - {formatDate(offer.valid_to)}
+                    {/* Price */}
+                    {offer.products && (
+                      <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg px-3 py-2">
+                        <p className="text-xs text-gray-600 mb-1">Product Price</p>
+                        <p className="text-2xl font-bold text-primary">
+                          ${offer.products.price}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Dates */}
+                    <div className="pt-2 border-t border-gray-100 space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-500 flex items-center gap-1">
+                          <FiCalendar className="text-sm" />
+                          Created
+                        </span>
+                        <span className="font-medium text-gray-700">
+                          {formatDate(offer.created_at)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-500 flex items-center gap-1">
+                          <FiCalendar className="text-sm" />
+                          Expires
+                        </span>
+                        <span className={`font-medium ${isExpired(offer.expire_it) ? 'text-red-600' : 'text-gray-700'}`}>
+                          {formatDate(offer.expire_it)}
                         </span>
                       </div>
                     </div>
-
-                    {/* Price Info */}
-                    {offer.products && (
-                      <div className="flex items-center justify-between pt-2">
-                        <div>
-                          <p className="text-xs text-gray-500 line-through">
-                            ${offer.products.price}
-                          </p>
-                          <p className="text-lg font-bold text-primary">
-                            ${(offer.products.price * (1 - offer.discount_percentage / 100)).toFixed(2)}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xs text-gray-500">You Save</p>
-                          <p className="text-sm font-bold text-green-600">
-                            ${(offer.products.price * (offer.discount_percentage / 100)).toFixed(2)}
-                          </p>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
               ))}
