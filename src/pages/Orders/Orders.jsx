@@ -1,41 +1,35 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { FiSearch } from "react-icons/fi";
 import Header from "../../layouts/partials/header";
+import { fetchOrders } from "../../services/orderServices";
 const Orders = () => {
-  const ordersData = [
-    {
-      id: 1,
-      orderNumber: "ORD12345",
-      customerName: "John Doe",
-      orderDate: "2025-04-01",
-      totalAmount: "$200.00",
-      status: "Shipped",
-    },
-    {
-      id: 2,
-      orderNumber: "ORD12346",
-      customerName: "Jane Smith",
-      orderDate: "2025-04-02",
-      totalAmount: "$150.00",
-      status: "Pending",
-    },
-    {
-      id: 3,
-      orderNumber: "ORD12347",
-      customerName: "Alice Johnson",
-      orderDate: "2025-04-03",
-      totalAmount: "$300.00",
-      status: "Delivered",
-    },
-    {
-      id: 4,
-      orderNumber: "ORD12348",
-      customerName: "Bob Brown",
-      orderDate: "2025-04-04",
-      totalAmount: "$100.00",
-      status: "Shipped",
-    },
-  ];
+  const [ordersData, setOrdersData] = React.useState([]);
+
+  useEffect(() => {
+    // Fetch orders data from a local JSON file or an API endpoint
+    const fetchOrdersData = async () => {
+      const response = await fetchOrders();
+      setOrdersData(response);
+      console.log(response)
+    }
+    fetchOrdersData();
+  }, []);
+
+
+  function formatTime(timestamp) {
+    const date = new Date(timestamp); // parse the timestamp
+    // Options for formatting
+    const options = {
+      year: 'numeric',
+      month: 'short', // Dec
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      // second: '2-digit',
+      hour12: true, // 12-hour format
+    };
+    return date.toLocaleString('en-PK', options); // Pakistan time format
+  }
   return (
     <div>
       <Header header={"Manage Orders"} />
@@ -61,6 +55,8 @@ const Orders = () => {
                   <th className="px-6 py-3">Customer Name</th>
                   <th className="px-6 py-3">Order Date</th>
                   <th className="px-6 py-3">Total Amount</th>
+                  <th className="px-6 py-3">deliver Time</th>
+                  <th className="px-6 py-3">Is Placed</th>
                   <th className="px-6 py-3">Status</th>
                 </tr>
               </thead>
@@ -70,19 +66,22 @@ const Orders = () => {
                     key={order.id}
                     className="bg-white hover:bg-gray-50 transition-colors duration-150 ease-in-out"
                   >
-                    <td className="px-6 py-3">{order.orderNumber}</td>
-                    <td className="px-6 py-3">{order.customerName}</td>
-                    <td className="px-6 py-3">{order.orderDate}</td>
-                    <td className="px-6 py-3">{order.totalAmount}</td>
+                    <td className="px-6 py-3">{order.id}</td>
+                    <td className="px-6 py-3">{order.users.name}</td>
+                    <td className="px-6 py-3">{formatTime(order.created_at)}</td>
+                    <td className="px-6 py-3">{order.payments.amount}</td>
+                    <td className="px-6 py-3">{order.deliver_time}</td>
+                    {/* <td className="px-6 py-3">{order.status}</td> */}
+                    <td className="px-6 py-3">{order.is_placed ? "Yes" : "No"}</td>
+
                     <td className="px-6 py-3">
                       <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          order.status === "Shipped"
-                            ? "bg-green-100 text-green-800"
-                            : order.status === "Pending"
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${order.status === "completed"
+                          ? "bg-green-100 text-green-800"
+                          : order.status === "active"
                             ? "bg-yellow-100 text-yellow-800"
                             : "bg-blue-100 text-blue-800"
-                        }`}
+                          }`}
                       >
                         {order.status}
                       </span>

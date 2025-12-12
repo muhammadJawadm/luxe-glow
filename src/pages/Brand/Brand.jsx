@@ -3,11 +3,23 @@ import DeleteModal from "../../components/Modals/DeleteModal";
 import Header from "../../layouts/partials/header";
 import { FiEdit2, FiSearch, FiTrash2 } from "react-icons/fi";
 import BrandModal from "../../components/Modals/BrandModal";
+import { fetchBrands } from "../../services/brandsServices";
+import { useEffect } from "react";
 
 const Brand = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBrand, setSelectedBrand] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+const [brandData, setBrandData] = useState([]);
+
+useEffect(() => {
+  const fetchBrandsData = async () => {
+    const response = await fetchBrands();
+    setBrandData(response); 
+    console.log("Brands Data:", response);
+    }
+  fetchBrandsData();
+}, []);
 
   const handleEditClick = (brand) => {
     setSelectedBrand(brand);
@@ -19,35 +31,7 @@ const Brand = () => {
     setIsModalOpen(true);
   };
 
-  const brandData = [
-    {
-      id: 1,
-      title: "Matte Lipstick",
-      brand: "Lips Co.",
-      description: "A long-lasting matte lipstick for bold lips.",
-      dateAndTime: "March 24, 2025, 10:00 AM",
-      image:
-        "https://images.pexels.com/photos/301367/pexels-photo-301367.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-    },
-    {
-      id: 2,
-      title: "Liquid Foundation",
-      brand: "FacePro",
-      description: "Smooth finish foundation with 24hr coverage.",
-      dateAndTime: "March 24, 2025, 2:00 PM",
-      image:
-        "https://images.pexels.com/photos/2537930/pexels-photo-2537930.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-    },
-    {
-      id: 3,
-      title: "Eyeliner Pen",
-      brand: "EyeLine",
-      description: "Precision eyeliner pen for flawless eyes.",
-      dateAndTime: "March 25, 2025, 9:00 AM",
-      image:
-        "https://images.pexels.com/photos/2533266/pexels-photo-2533266.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-    },
-  ];
+  
   return (
     <div>
       <Header header={"Manage brands"} />
@@ -76,8 +60,8 @@ const Brand = () => {
               <thead className="bg-gradient-to-r from-gray-50 to-gray-100/70 text-gray-700">
                 <tr>
                   <th className="px-6 py-3 font-medium">Title</th>
-                  <th className="px-6 py-3 font-medium">Description</th>
-                  <th className="px-6 py-3 font-medium">Date & Time</th>
+                  {/* <th className="px-6 py-3 font-medium">Description</th> */}
+                  <th className="px-6 py-3 font-medium">Created At </th>
                   <th className="px-6 py-3 font-medium">Actions</th>
                 </tr>
               </thead>
@@ -89,29 +73,17 @@ const Brand = () => {
                   >
                     <td className="px-6 py-3">
                       <div className="flex items-center space-x-4">
-                        <div className="flex-shrink-0">
-                          <img
-                            src={item.image}
-                            alt={item.title}
-                            className="w-12 h-12 rounded-lg object-cover shadow-sm border border-gray-200"
-                          />
-                        </div>
                         <div>
                           <h3 className="font-medium text-gray-800">
-                            {item.title}
+                            {item.name}
                           </h3>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-3">
-                      <p className="text-gray-600 line-clamp-2 max-w-md">
-                        {item.description}
-                      </p>
-                    </td>
-                    <td className="px-6 py-3">
                       <div className="flex items-center">
                         <span className="text-gray-700">
-                          {item.dateAndTime}
+                          {item.created_at}
                         </span>
                       </div>
                     </td>

@@ -1,51 +1,142 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Header from "../../layouts/partials/header";
 import { FiSearch } from "react-icons/fi";
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";
+import { fetchUsers, deleteUser, updateUser } from "../../services/userServices";
 
 const Users = () => {
-  const usersData = [
-    {
-      id: 1,
-      name: "John Doe",
-      email: "john.doe@example.com",
-      phoneNumber: "+123456789",
-      profilePicture:
-        "https://images.pexels.com/photos/5384445/pexels-photo-5384445.jpeg?auto=compress&cs=tinysrgb&w=1600",
-      status: "Active",
-      redeemPoints: 5,
-    },
-    {
-      id: 2,
-      name: "Jane Smith",
-      email: "jane.smith@example.com",
-      phoneNumber: "+987654321",
-      profilePicture:
-        "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=1600",
-      status: "Inactive",
-      redeemPoints: 4,
-    },
-    {
-      id: 3,
-      name: "Alice Johnson",
-      email: "alice.johnson@example.com",
-      phoneNumber: "+1122334455",
-      profilePicture:
-        "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1600",
-      status: "Active",
-      redeemPoints: 1,
-    },
-    {
-      id: 4,
-      name: "Alice Johnson",
-      email: "alice.johnson@example.com",
-      phoneNumber: "+1122334455",
-      profilePicture:
-        "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1600",
-      status: "Active",
-      redeemPoints: 3,
-    },
-  ];
+  const [usersData, setUsersData] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [editingUser, setEditingUser] = useState(null);
+  const [editFormData, setEditFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    is_active: true
+  });
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        setLoading(true);
+        const response = await fetchUsers();
+        setUsersData(response);
+        setFilteredUsers(response);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+        alert("Failed to load users. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  // Search functionality
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredUsers(usersData);
+    } else {
+      const filtered = usersData.filter(user =>
+        user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.phone.includes(searchQuery)
+      );
+      setFilteredUsers(filtered);
+    }
+  }, [searchQuery, usersData]);
+
+  const handleDeleteUser = async (userId) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this user? This action cannot be undone.");
+
+    if (!confirmDelete) return;
+
+    try {
+      await deleteUser(userId);
+
+      // Update the UI by removing the deleted user
+      const updatedUsers = usersData.filter(user => user.id !== userId);
+      setUsersData(updatedUsers);
+      setFilteredUsers(updatedUsers.filter(user =>
+        user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.phone.includes(searchQuery)
+      ));
+      alert("User deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      alert("Failed to delete user. Please try again.");
+    }
+  };
+
+  const handleEditUser = (userId) => {
+    const userToEdit = usersData.find(user => user.id === userId);
+    if (userToEdit) {
+      setEditingUser(userId);
+      setEditFormData({
+        name: userToEdit.name,
+        email: userToEdit.email,
+        phone: userToEdit.phone,
+        is_active: userToEdit.is_active
+      });
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingUser(null);
+    setEditFormData({
+      name: "",
+      email: "",
+      phone: "",
+      is_active: true
+    });
+  };
+
+  const handleSaveEdit = async (userId) => {
+    try {
+      await updateUser(userId, editFormData);
+      // Update the UI
+      const updatedUsers = usersData.map(user =>
+        user.id === userId ? { ...user, ...editFormData } : user
+      );
+      setUsersData(updatedUsers);
+      setFilteredUsers(updatedUsers.filter(user =>
+        user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.phone.includes(searchQuery)
+      ));
+      setEditingUser(null);
+      alert("User updated successfully!");
+    } catch (error) {
+      console.error("Error updating user:", error);
+      alert("Failed to update user. Please try again.");
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setEditFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  function formatTime(timestamp) {
+    const date = new Date(timestamp); // parse the timestamp
+    // Options for formatting
+    const options = {
+      year: 'numeric',
+      month: 'short', // Dec
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      // second: '2-digit',
+      hour12: true, // 12-hour format
+    };
+    return date.toLocaleString('en-PK', options); // Pakistan time format
+  }
   return (
     <div>
       <Header header={"Manage Customers"} />
@@ -57,6 +148,8 @@ const Users = () => {
             </div>
             <input
               type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg bg-white "
               placeholder="Search customers..."
             />
@@ -69,79 +162,147 @@ const Users = () => {
                 <tr>
                   <th className="px-6 py-3">Name</th>
                   <th className="px-6 py-3">Email</th>
-                  <th className="px-6 py-3">Phn. No</th>
-                  <th className="px-6 py-3">Redeem Points</th>
+                  <th className="px-6 py-3">Phone No</th>
+                  <th className="px-6 py-3">Last Seen</th>
                   <th className="px-6 py-3">Status</th>
+                  <th className="px-6 py-3">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200/60">
-                {usersData.map((user) => (
-                  <tr
-                    key={user.id}
-                    className="bg-white hover:bg-gray-50 transition-colors duration-150 ease-in-out"
-                  >
-                    <td className="px-6 py-3 whitespace-nowrap">
-                      <div className="flex items-center space-x-3">
-                        <img
-                          src={user.profilePicture}
-                          alt="User"
-                          className="w-9 h-9 rounded-full object-cover ring-2 ring-gray-200/50"
-                        />
-                        <span className="font-medium text-gray-800">
-                          {user.name}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-3">
-                      <span className="inline-flex items-center">
-                        {user.email}
-                        {user.emailVerified && (
-                          <svg
-                            className="w-3.5 h-3.5 ml-1.5 text-blue-500"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        )}
-                      </span>
-                    </td>
-                    <td className="px-6 py-3 font-mono text-gray-700/90">
-                      {user.phoneNumber}
-                    </td>
-                    <td className="px-6 py-3">
-                      <div className="flex items-center space-x-1 text-yellow-500">
-                        <span className="ml-2 text-sm text-gray-600">
-                          ({user.redeemPoints})
-                        </span>
-                        {Array.from({ length: 5 }, (_, i) =>
-                          i < Math.floor(user.redeemPoints) ? (
-                            <AiFillStar key={i} />
-                          ) : (
-                            <AiOutlineStar key={i} />
-                          )
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-3">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          user.status === "Active"
-                            ? "bg-green-100 text-green-800"
-                            : user.status === "Pending"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {user.status}
-                      </span>
+                {loading ? (
+                  <tr>
+                    <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
+                      Loading users...
                     </td>
                   </tr>
-                ))}
+                ) : filteredUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
+                      {searchQuery ? "No users found matching your search." : "No users available."}
+                    </td>
+                  </tr>
+                ) : (
+                  filteredUsers.map((user) => (
+                    <tr
+                      key={user.id}
+                      className="bg-white hover:bg-gray-50 transition-colors duration-150 ease-in-out"
+                    >
+                      <td className="px-6 py-3 whitespace-nowrap">
+                        {editingUser === user.id ? (
+                          <input
+                            type="text"
+                            name="name"
+                            value={editFormData.name}
+                            onChange={handleInputChange}
+                            className="w-full px-2 py-1 border border-gray-300 rounded"
+                          />
+                        ) : (
+                          <div className="flex items-center space-x-3">
+                            <img
+                              src={user.profile}
+                              alt="User"
+                              className="w-9 h-9 rounded-full object-cover ring-2 ring-gray-200/50"
+                            />
+                            <span className="font-medium text-gray-800">
+                              {user.name}
+                            </span>
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-3">
+                        {editingUser === user.id ? (
+                          <input
+                            type="email"
+                            name="email"
+                            value={editFormData.email}
+                            onChange={handleInputChange}
+                            className="w-full px-2 py-1 border border-gray-300 rounded"
+                          />
+                        ) : (
+                          <span className="inline-flex items-center">
+                            {user.email}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-3 font-mono text-gray-700/90">
+                        {editingUser === user.id ? (
+                          <input
+                            type="text"
+                            name="phone"
+                            value={editFormData.phone}
+                            onChange={handleInputChange}
+                            className="w-full px-2 py-1 border border-gray-300 rounded"
+                          />
+                        ) : (
+                          user.phone
+                        )}
+                      </td>
+                      <td className="px-6 py-3">
+                        <div className="flex items-center space-x-1 text-yellow-500">
+                          <span className="ml-2 text-sm text-gray-600">
+                            {formatTime(user.last_updated)}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-3">
+                        {editingUser === user.id ? (
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              name="is_active"
+                              checked={editFormData.is_active}
+                              onChange={handleInputChange}
+                              className="rounded"
+                            />
+                            <span className="text-xs">Active</span>
+                          </label>
+                        ) : (
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.is_active
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                              }`}
+                          >
+                            {user.is_active ? "Active" : "Inactive"}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-3 space-x-2">
+                        {editingUser === user.id ? (
+                          <>
+                            <button
+                              onClick={() => handleSaveEdit(user.id)}
+                              className="text-green-600 hover:text-green-800 font-medium"
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={handleCancelEdit}
+                              className="text-gray-600 hover:text-gray-800 font-medium"
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => handleEditUser(user.id)}
+                              className="text-blue-600 hover:text-blue-800 font-medium"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteUser(user.id)}
+                              className="text-red-600 hover:text-red-800 font-medium"
+                            >
+                              Delete
+                            </button>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

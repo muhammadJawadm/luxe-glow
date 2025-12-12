@@ -1,48 +1,49 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import Header from "../../layouts/partials/header";
 import GalleryImages from "./GalleryImages";
 import ReviewSection from "./ReviewSection";
 import ProductInfo from "./ProductInfo";
+import ProductModal from "../../components/Modals/ProductModal";
+import { fetchProductById } from "../../services/productServices";
 
 const ProductDetail = () => {
-  const [product, setProduct] = useState({
-    id: "prod_456",
-    title: "Luxury Matte Lipstick",
-    description:
-      "A luxurious matte lipstick that provides long-lasting color and a smooth, velvety finish. Available in a variety of bold and neutral shades for every occasion.",
-    category: "makeup",
-    price: 24.99,
-    stock: 100,
-    photo:
-      "https://images.unsplash.com/photo-1512207855369-643452a63d46?q=80&w=1983&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    gallery: [
-      "https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      "https://images.unsplash.com/photo-1583784561105-a674080f391e?q=80&w=1976&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    ],
-    rating: 4.8,
-    reviews: [
-      {
-        id: "rev_1",
-        author: "Emily Davis",
-        rating: 5,
-        comment:
-          "The color is rich and the finish is flawless. Lasts all day without fading.",
-        date: "2023-07-10",
-      },
-      {
-        id: "rev_2",
-        author: "Jessica Lee",
-        rating: 4,
-        comment:
-          "Great lipstick, but a bit drying after a few hours. Would recommend using a lip balm underneath.",
-        date: "2023-06-25",
-      },
-    ],
-  });
-
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [newGalleryImage, setNewGalleryImage] = useState(null);
-
   const galleryInputRef = useRef(null);
+
+  // Fetch product data
+  useEffect(() => {
+    const loadProduct = async () => {
+      try {
+        setLoading(true);
+        const data = await fetchProductById(id);
+        if (data) {
+          setProduct(data);
+        } else {
+          setError("Product not found");
+        }
+      } catch (err) {
+        console.error("Error fetching product:", err);
+        setError("Failed to load product");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      loadProduct();
+    }
+  }, [id]);
+
+
+
+
 
   const handleAddGalleryImage = (e) => {
     const file = e.target.files[0];
@@ -78,12 +79,50 @@ const ProductDetail = () => {
     }));
   };
 
-  // Calculate average rating
-  const calculateAverageRating = (reviews) => {
-    if (reviews.length === 0) return 0;
-    const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
-    return Math.round((sum / reviews.length) * 10) / 10;
+  const handleRefreshProduct = async () => {
+    try {
+      const data = await fetchProductById(id);
+      if (data) {
+        setProduct(data);
+      }
+    } catch (err) {
+      console.error("Error refreshing product:", err);
+    }
   };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div>
+        <Header header={"Manage Products"} />
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-8 py-6">
+          <div className="flex items-center justify-center h-96">
+            <div className="text-gray-500 text-lg">Loading product...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error || !product) {
+    return (
+      <div>
+        <Header header={"Manage Products"} />
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-8 py-6">
+          <div className="flex flex-col items-center justify-center h-96">
+            <div className="text-red-500 text-lg mb-4">{error || "Product not found"}</div>
+            <button
+              onClick={() => navigate("/products")}
+              className="px-4 py-2 bg-primary text-white rounded-lg"
+            >
+              Back to Products
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -95,14 +134,17 @@ const ProductDetail = () => {
               <div className="px-4 py-5 sm:px-6 border-b border-gray-200 flex justify-between items-center">
                 <div>
                   <h2 className="text-lg leading-6 font-medium text-black">
-                    {product.title}
+                    {product.name}
                   </h2>
                   <p className="mt-1 text-sm text-gray-500">
-                    {product.category} • {product.stock} in stock
+                    {product.categories?.name || "N/A"} • {product.stock_level || 0} in stock
                   </p>
                 </div>
 
-                <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary">
+                <button
+                  onClick={() => setIsEditModalOpen(true)}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90"
+                >
                   Edit Product
                 </button>
               </div>
@@ -114,22 +156,22 @@ const ProductDetail = () => {
                         Main Photo
                       </label>
                       <div className="relative bg-gray-100 rounded-lg overflow-hidden h-80 flex items-center justify-center">
-                        {product.photo ? (
+                        {product.product_images && product.product_images.length > 0 ? (
                           <img
-                            src={product.photo}
+                            src={product.product_images[0].image_url}
                             alt="Main product"
                             className="w-full h-full object-cover"
                           />
                         ) : (
                           <span className="text-gray-400">
-                            No image selected
+                            No image available
                           </span>
                         )}
                       </div>
                     </div>
 
                     <GalleryImages
-                      gallery={product.gallery}
+                      gallery={product.product_images?.slice(1).map(img => img.image_url) || []}
                       removeImage={removeGalleryImage}
                       newGalleryImage={newGalleryImage}
                       confirmAddImage={confirmAddGalleryImage}
@@ -138,22 +180,29 @@ const ProductDetail = () => {
                     />
                   </div>
                   <ProductInfo
-                    title={product.title}
+                    title={product.name}
                     price={product.price}
-                    stock={product.stock}
+                    stock={product.stock_level}
                     description={product.description}
-                    category={product.category}
-                    rating={product.rating}
-                    reviews={product.reviews}
+                    category={product.categories?.name || "N/A"}
+                    brand={product.brands?.name || "N/A"}
+                    rating={product.rating || 0}
+                    reviews={[]}
                   />
                 </div>
 
-                <ReviewSection reviews={product.reviews} />
+                <ReviewSection reviews={[]} />
               </div>
             </div>
           </main>
         </div>
       </div>
+      <ProductModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        product={product}
+        onSave={handleRefreshProduct}
+      />
     </div>
   );
 };

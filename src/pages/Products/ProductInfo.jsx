@@ -6,6 +6,7 @@ const ProductInfo = ({
   stock,
   description,
   category,
+  brand,
   rating,
   reviews,
 }) => {
@@ -43,15 +44,20 @@ const ProductInfo = ({
       </div>
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-1">
+          Brand
+        </label>
+        <p className="text-gray-900 capitalize">{brand}</p>
+      </div>
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-1">
           Average Rating
         </label>
         <div className="flex items-center">
           {[1, 2, 3, 4, 5].map((star) => (
             <span
               key={star}
-              className={`text-2xl ${
-                star <= Math.round(rating) ? "text-yellow-400" : "text-gray-300"
-              }`}
+              className={`text-2xl ${star <= Math.round(rating) ? "text-yellow-400" : "text-gray-300"
+                }`}
             >
               ★
             </span>

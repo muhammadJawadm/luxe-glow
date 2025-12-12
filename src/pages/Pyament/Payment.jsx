@@ -1,42 +1,34 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Header from "../../layouts/partials/header";
 import { FiSearch } from "react-icons/fi";
-
+import { fetchPayments } from "../../services/paymentsServices";
 const Payment = () => {
-  const paymentData = [
-    {
-      id: 1,
-      paymentId: "PAY12345",
-      customerName: "John Doe",
-      paymentDate: "2025-04-01",
-      totalAmount: "$200.00",
-      status: "Completed",
-    },
-    {
-      id: 2,
-      paymentId: "PAY12346",
-      customerName: "Jane Smith",
-      paymentDate: "2025-04-02",
-      totalAmount: "$150.00",
-      status: "Pending",
-    },
-    {
-      id: 3,
-      paymentId: "PAY12347",
-      customerName: "Alice Johnson",
-      paymentDate: "2025-04-03",
-      totalAmount: "$300.00",
-      status: "Failed",
-    },
-    {
-      id: 4,
-      paymentId: "PAY12348",
-      customerName: "Bob Brown",
-      paymentDate: "2025-04-04",
-      totalAmount: "$100.00",
-      status: "Completed",
-    },
-  ];
+  const [paymentsData, setPaymentsData] = useState([]);
+
+  useEffect(() => {
+    // Fetch payments data from a local JSON file or an API endpoint
+    const fetchPaymentsData = async () => {
+      const response = await fetchPayments();
+      console.log(response)
+      setPaymentsData(response);
+    }
+    fetchPaymentsData();
+  }, []);
+
+  function formatTime(timestamp) {
+    const date = new Date(timestamp); // parse the timestamp
+    // Options for formatting
+    const options = {
+      year: 'numeric',
+      month: 'short', // Dec
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      // second: '2-digit',
+      hour12: true, // 12-hour format
+    };
+    return date.toLocaleString('en-PK', options); // Pakistan time format
+  }
 
   return (
     <div>
@@ -62,29 +54,30 @@ const Payment = () => {
                   <th className="px-6 py-3">Payment ID</th>
                   <th className="px-6 py-3">Customer Name</th>
                   <th className="px-6 py-3">Payment Date</th>
+                  <th className="px-6 py-3">Discount</th>
                   <th className="px-6 py-3">Total Amount</th>
                   <th className="px-6 py-3">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200/60">
-                {paymentData.map((payment) => (
+                {paymentsData.map((payment) => (
                   <tr
                     key={payment.id}
                     className="bg-white hover:bg-gray-50 transition-colors duration-150 ease-in-out"
                   >
-                    <td className="px-6 py-3">{payment.paymentId}</td>
-                    <td className="px-6 py-3">{payment.customerName}</td>
-                    <td className="px-6 py-3">{payment.paymentDate}</td>
-                    <td className="px-6 py-3">{payment.totalAmount}</td>
+                    <td className="px-6 py-3">{payment.id}</td>
+                    <td className="px-6 py-3">{payment.users.name}</td>
+                    <td className="px-6 py-3">{formatTime(payment.paid_at)}</td>
+                    <td className="px-6 py-3">{payment.discount ? `${payment.discount}%` : "0%"}</td>
+                    <td className="px-6 py-3">{payment.amount}</td>
                     <td className="px-6 py-3">
                       <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          payment.status === "Completed"
-                            ? "bg-green-100 text-green-800"
-                            : payment.status === "Pending"
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${payment.status === "Completed"
+                          ? "bg-green-100 text-green-800"
+                          : payment.status === "Pending"
                             ? "bg-yellow-100 text-yellow-800"
                             : "bg-red-100 text-red-800"
-                        }`}
+                          }`}
                       >
                         {payment.status}
                       </span>
