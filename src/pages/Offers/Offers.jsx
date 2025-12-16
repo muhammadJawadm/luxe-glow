@@ -245,8 +245,8 @@ const Offers = () => {
                           <FiCalendar className="text-sm" />
                           Expires
                         </span>
-                        <span className={`font-medium ${isExpired(offer.expire_it) ? 'text-red-600' : 'text-gray-700'}`}>
-                          {formatDate(offer.expire_it)}
+                        <span className={`font-medium ${isExpired(offer.expire_at) ? 'text-red-600' : 'text-gray-700'}`}>
+                          {formatDate(offer.expire_at)}
                         </span>
                       </div>
                     </div>

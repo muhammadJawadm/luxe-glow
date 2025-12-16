@@ -4,7 +4,7 @@ import { supabase } from "../lib/supabase";
 export const fetchOffers = async () => {
     const { data, error } = await supabase
         .from("offers")
-        .select("* , products(*)");
+        .select("* , products(*,categories(*))");
 
     if (error) {
         console.error("Error fetching offers:", error);

@@ -23,7 +23,8 @@ export const fetchCategoryById = async (id) => {
 export const createCategory = async (categoryData) => {
     const { data, error } = await supabase
         .from("categories")
-        .insert(categoryData);
+        .insert(categoryData)
+        .select();
     if (error) {
         console.error('Error creating category:', error);
         return null;
@@ -35,7 +36,8 @@ export const updateCategory = async (id, updatedData) => {
     const { data, error } = await supabase
         .from("categories")
         .update(updatedData)
-        .eq("id", id);
+        .eq("id", id)
+        .select();
 
     if (error) {
         console.error('Error updating category:', error);

@@ -1,9 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import CategoryModal from "../../components/Modals/CategoryModal";
 import DeleteModal from "../../components/Modals/DeleteModal";
 import Header from "../../layouts/partials/header";
-import { deleteCategory, fetchCategories } from "../../services/categoriesServices";
-import { useEffect } from "react";
+import { deleteCategory, fetchCategories, createCategory, updateCategory } from "../../services/categoriesServices";
 import { FiEdit2, FiSearch, FiTrash2 } from "react-icons/fi";
 
 const Categories = () => {
@@ -12,14 +11,15 @@ const Categories = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [categoryData, setCategoryData] = useState([]);
 
+  const fectchCategoriesData = async () => {
+    const response = await fetchCategories();
+    setCategoryData(response);
+    console.log("Categories Data:", response);
+  }
+
   useEffect(() => {
-    const fectchCategoriesData = async () => {
-      const response = await fetchCategories();
-      setCategoryData(response); 
-      console.log("Categories Data:", response);
-      }
     fectchCategoriesData();
-  }, []); 
+  }, []);
 
   const handleEditClick = (category) => {
     setSelectedCategory(category);
@@ -30,10 +30,37 @@ const Categories = () => {
     setSelectedCategory(null);
     setIsModalOpen(true);
   };
-  
-const handleDeleteCategory = (categoryId) => {
-    deleteCategory(categoryId);
-    // Implement delete category functionality
+
+  const handleSaveCategory = async (formData) => {
+    if (selectedCategory) {
+      // Update
+      const response = await updateCategory(selectedCategory.id, formData);
+      if (response) {
+        await fectchCategoriesData();
+        setIsModalOpen(false);
+      }
+    } else {
+      // Create
+      const response = await createCategory(formData);
+      if (response) {
+        await fectchCategoriesData();
+        setIsModalOpen(false);
+      }
+    }
+  };
+
+  const handleDeleteClick = (category) => {
+    setSelectedCategory(category);
+    setIsDeleteModalOpen(true);
+  }
+
+  const handleDeleteCategory = async () => {
+    if (selectedCategory) {
+      await deleteCategory(selectedCategory.id);
+      await fectchCategoriesData();
+      setIsDeleteModalOpen(false);
+      setSelectedCategory(null);
+    }
   }
 
   return (
@@ -85,7 +112,7 @@ const handleDeleteCategory = (categoryId) => {
                         </div>
                       </div>
                     </td>
-                 
+
                     <td className="px-6 py-3">
                       <div className="flex items-center">
                         <span className="text-gray-700">
@@ -97,12 +124,12 @@ const handleDeleteCategory = (categoryId) => {
                       <div className="flex space-x-2">
                         <button
                           className="p-2 text-gray-500 cursor-pointer hover:text-green-600 hover:bg-green-50 rounded-md transition-colors"
-                          onClick={handleEditClick}
+                          onClick={() => handleEditClick(item)}
                         >
                           <FiEdit2 />
                         </button>
                         <button
-                          onClick={() => setIsDeleteModalOpen(true)}
+                          onClick={() => handleDeleteClick(item)}
                           className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors  cursor-pointer"
                         >
                           <FiTrash2 />
@@ -120,11 +147,12 @@ const handleDeleteCategory = (categoryId) => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         category={selectedCategory}
+        onSave={handleSaveCategory}
       />
       <DeleteModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
-        onDelete={() => handleDeleteCategory(selectedCategory.id)}
+        onDelete={handleDeleteCategory}
       />
     </div>
   );
