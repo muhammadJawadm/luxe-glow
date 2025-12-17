@@ -4,11 +4,12 @@ import { supabase } from "../lib/supabase";
 export const fetchOffers = async () => {
     const { data, error } = await supabase
         .from("offers")
-        .select("* , products(*,categories(*))");
+        .select("*, products(*, categories(*), product_images(*))")
+        .order("created_at", { ascending: false });
 
     if (error) {
         console.error("Error fetching offers:", error);
-        return [];
+        throw error;
     }
 
     return data;
@@ -18,13 +19,28 @@ export const fetchOffers = async () => {
 export const fetchOfferById = async (offerId) => {
     const { data, error } = await supabase
         .from("offers")
-        .select("*")
+        .select("*, products(*, categories(*))")
         .eq("id", offerId)
         .single();
 
     if (error) {
         console.error("Error fetching offer by ID:", error);
-        return null;
+        throw error;
+    }
+
+    return data;
+};
+
+// Create new offer
+export const createOffer = async (offerData) => {
+    const { data, error } = await supabase
+        .from("offers")
+        .insert([offerData])
+        .select();
+
+    if (error) {
+        console.error("Error creating offer:", error);
+        throw error;
     }
 
     return data;
@@ -35,11 +51,12 @@ export const updateOffer = async (offerId, updatedData) => {
     const { data, error } = await supabase
         .from("offers")
         .update(updatedData)
-        .eq("id", offerId);
+        .eq("id", offerId)
+        .select();
 
     if (error) {
         console.error("Error updating offer:", error);
-        return null;
+        throw error;
     }
 
     return data;
@@ -50,25 +67,12 @@ export const deleteOffer = async (offerId) => {
     const { data, error } = await supabase
         .from("offers")
         .delete()
-        .eq("id", offerId);
+        .eq("id", offerId)
+        .select();
 
     if (error) {
         console.error("Error deleting offer:", error);
-        return null;
-    }
-
-    return data;
-};
-
-// Create new offer (Optional - but good to include)
-export const createOffer = async (offerData) => {
-    const { data, error } = await supabase
-        .from("offers")
-        .insert(offerData);
-
-    if (error) {
-        console.error("Error creating offer:", error);
-        return null;
+        throw error;
     }
 
     return data;

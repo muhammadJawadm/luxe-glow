@@ -19,6 +19,7 @@ import RegisterSessions from "./pages/POSDashboard/RegisterSessions";
 import PosBills from "./pages/POSDashboard/PosBills";
 import PosPayment from "./pages/POSDashboard/PosPayment";
 import PosSell from "./pages/POSDashboard/PosSell";
+import Notifications from "./pages/Notifications/Notifications";
 import Inventory from "./pages/Inventory/Inventory";
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
         <Route path="/brand" element={<Brand />} />
         <Route path="/inventory" element={<Inventory />} />
         <Route path="/offer" element={<Offers />} />
+        <Route path="/notifications" element={<Notifications />} />
         <Route path="/payment" element={<Payment />} />
         <Route path="/content" element={<Content />} />
         <Route path="/setting" element={<Settings />} />

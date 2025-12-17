@@ -43,6 +43,7 @@ export const sidebarLinks = [
   { name: "Products", path: "/product", icon: <AiFillProduct /> },
   { name: "Offers", path: "/offer", icon: <FiTag /> },
   { name: "Orders", path: "/order", icon: <FiShoppingCart /> },
+  { name: "Notifications", path: "/notifications", icon: <MdEventNote /> },
   { name: "Inventory", path: "/inventory", icon: <FiBox /> },
   { name: "Payment", path: "/payment", icon: <MdPayments /> },
   { name: "Content", path: "/content", icon: <MdContentCopy /> },
