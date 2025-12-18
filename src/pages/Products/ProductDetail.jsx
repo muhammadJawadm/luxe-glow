@@ -25,6 +25,7 @@ const ProductDetail = () => {
         const data = await fetchProductById(id);
         if (data) {
           setProduct(data);
+          console.log("Fetched product data:", data);
         } else {
           setError("Product not found");
         }
@@ -187,11 +188,11 @@ const ProductDetail = () => {
                     category={product.categories?.name || "N/A"}
                     brand={product.brands?.name || "N/A"}
                     rating={product.rating || 0}
-                    reviews={[]}
+                    reviews={product.reviews}
                   />
                 </div>
 
-                <ReviewSection reviews={[]} />
+                <ReviewSection reviews={product.reviews} />
               </div>
             </div>
           </main>

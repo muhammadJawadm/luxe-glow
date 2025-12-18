@@ -3,7 +3,7 @@ import { supabase } from "../lib/supabase";
 export const fetchProducts = async () => {
   const { data, error } = await supabase
     .from("products")
-    .select("*, product_images(*), brands(*), categories(*)");
+    .select("*, product_images(*), brands(*), categories(*), reviews(*)");
 
   if (error) return [];
   return data;
@@ -12,7 +12,7 @@ export const fetchProducts = async () => {
 export const fetchProductById = async (productId) => {
   const { data, error } = await supabase
     .from("products")
-    .select("*, product_images(*), brands(*), categories(*)")
+    .select("*, product_images(*), brands(*), categories(*) , reviews(*)")
     .eq("id", productId)
     .single();
 
