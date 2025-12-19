@@ -9,6 +9,7 @@ import Categories from "./pages/Categories/Categories";
 import Products from "./pages/Products/Products";
 import ProductDetail from "./pages/Products/ProductDetail";
 import Orders from "./pages/Orders/Orders";
+import OrderedProducts from "./pages/OrderedProducts/OrderedProducts";
 import Offers from "./pages/Offers/Offers";
 import Content from "./pages/Content/Content";
 import Payment from "./pages/Pyament/Payment";
@@ -32,6 +33,7 @@ function App() {
         <Route path="/product" element={<Products />} />
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/order" element={<Orders />} />
+        <Route path="/ordered-products" element={<OrderedProducts />} />
         <Route path="/pos/sell" element={<PosSell />} />
         <Route path="/pos/register" element={<Register />} />
         <Route path="/pos/registerSession" element={<RegisterSessions />} />

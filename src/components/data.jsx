@@ -15,7 +15,7 @@ import { FaBookBookmark } from "react-icons/fa6";
 import { MdDashboardCustomize } from "react-icons/md";
 import { GiCardExchange } from "react-icons/gi";
 import { AiFillProduct, AiFillSetting } from "react-icons/ai";
-import { FiBox, FiShoppingCart, FiTag } from "react-icons/fi";
+import { FiBox, FiShoppingCart, FiTag, FiPackage } from "react-icons/fi";
 import { RiShoppingBag3Fill } from "react-icons/ri";
 export const sidebarLinks = [
   { name: "Dashboard", path: "/", icon: <MdDashboardCustomize /> },
@@ -43,6 +43,7 @@ export const sidebarLinks = [
   { name: "Products", path: "/product", icon: <AiFillProduct /> },
   { name: "Offers", path: "/offer", icon: <FiTag /> },
   { name: "Orders", path: "/order", icon: <FiShoppingCart /> },
+  { name: "Ordered Products", path: "/ordered-products", icon: <FiPackage /> },
   { name: "Notifications", path: "/notifications", icon: <MdEventNote /> },
   { name: "Inventory", path: "/inventory", icon: <FiBox /> },
   { name: "Payment", path: "/payment", icon: <MdPayments /> },
