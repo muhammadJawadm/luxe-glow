@@ -228,7 +228,7 @@ const OrderedProducts = () => {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="text-sm font-semibold text-gray-900">
-                                                        ${item.products?.price || 0}
+                                                        MVR {item.products?.price || 0}
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -238,7 +238,7 @@ const OrderedProducts = () => {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="text-sm font-bold text-primary">
-                                                        ${((item.products?.price || 0) * item.quantity).toFixed(2)}
+                                                        MVR {((item.products?.price || 0) * item.quantity).toFixed(2)}
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4">

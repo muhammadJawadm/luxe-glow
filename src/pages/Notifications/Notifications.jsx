@@ -47,15 +47,15 @@ const Notifications = () => {
       const filtered = users.filter(user => {
         const name = user.name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email;
         return name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-               user.email.toLowerCase().includes(searchTerm.toLowerCase());
+          user.email.toLowerCase().includes(searchTerm.toLowerCase());
       });
       setFilteredUsers(filtered);
     }
   }, [searchTerm, users, formData.sendTo]);
 
   const toggleUserSelection = (userId) => {
-    setSelectedUsers(prev => 
-      prev.includes(userId) 
+    setSelectedUsers(prev =>
+      prev.includes(userId)
         ? prev.filter(id => id !== userId)
         : [...prev, userId]
     );
@@ -87,46 +87,42 @@ const Notifications = () => {
 
     try {
       const recipientUsers = formData.sendTo === "all" ? users : users.filter(u => selectedUsers.includes(u.id));
-      
+
       setSendingProgress({ current: 0, total: recipientUsers.length });
-      
+
       let successCount = 0;
       let failedCount = 0;
 
       for (let i = 0; i < recipientUsers.length; i++) {
         const user = recipientUsers[i];
         setSendingProgress({ current: i + 1, total: recipientUsers.length });
-        
+
         try {
-          // Send FCM notification
-          const { data: fcmResult, error: fcmError } = await supabase.functions.invoke('send-fcm-notification', {
+          // Send push notification via edge function
+          const { data: notificationResult, error: notificationError } = await supabase.functions.invoke('send-notification', {
             body: {
               token: user.fcm_token,
-              notification: {
-                title: formData.title,
-                body: formData.message,
-              },
+              title: formData.title,
+              body: formData.message,
               data: {
                 type: 'admin_push',
-                title: formData.title,
-                message: formData.message,
                 timestamp: new Date().toISOString(),
               }
             }
           });
 
-          if (fcmError || (fcmResult && !fcmResult.success)) {
+          if (notificationError || (notificationResult && !notificationResult.success)) {
+            console.error(`Failed to send to ${user.email}:`, notificationError || notificationResult);
             failedCount++;
             continue;
           }
 
           // Store in database
           await supabase.from('notifications').insert({
-            user_id: user.id,
-            type: 'admin_push',
+            uid: user.id,
             title: formData.title,
-            message: formData.message,
-            is_read: false,
+            sub_title: formData.message,
+            sender: 'admin'
           });
 
           successCount++;
@@ -168,7 +164,7 @@ const Notifications = () => {
     <div>
       <Header header={"Send Push Notifications"} />
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-8 py-6">
-        
+
         {/* Info Card */}
         <div className="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
           <div className="flex items-start gap-3">
@@ -240,11 +236,10 @@ const Notifications = () => {
                   Send To <span className="text-red-500">*</span>
                 </label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <label className={`flex items-center p-4 cursor-pointer rounded-lg border-2 transition-all ${
-                    formData.sendTo === "all" 
-                      ? 'bg-white border-primary shadow-md' 
-                      : 'bg-white border-gray-200 hover:border-gray-300'
-                  }`}>
+                  <label className={`flex items-center p-4 cursor-pointer rounded-lg border-2 transition-all ${formData.sendTo === "all"
+                    ? 'bg-white border-primary shadow-md'
+                    : 'bg-white border-gray-200 hover:border-gray-300'
+                    }`}>
                     <input
                       type="radio"
                       name="sendTo"
@@ -270,11 +265,10 @@ const Notifications = () => {
                     </div>
                   </label>
 
-                  <label className={`flex items-center p-4 cursor-pointer rounded-lg border-2 transition-all ${
-                    formData.sendTo === "selected" 
-                      ? 'bg-white border-primary shadow-md' 
-                      : 'bg-white border-gray-200 hover:border-gray-300'
-                  }`}>
+                  <label className={`flex items-center p-4 cursor-pointer rounded-lg border-2 transition-all ${formData.sendTo === "selected"
+                    ? 'bg-white border-primary shadow-md'
+                    : 'bg-white border-gray-200 hover:border-gray-300'
+                    }`}>
                     <input
                       type="radio"
                       name="sendTo"
@@ -370,13 +364,12 @@ const Notifications = () => {
                       <div className="divide-y divide-gray-100">
                         {filteredUsers.map((user) => {
                           const isSelected = selectedUsers.includes(user.id);
-                          
+
                           return (
                             <label
                               key={user.id}
-                              className={`flex items-center p-4 cursor-pointer transition-colors ${
-                                isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'
-                              }`}
+                              className={`flex items-center p-4 cursor-pointer transition-colors ${isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'
+                                }`}
                             >
                               <input
                                 type="checkbox"
@@ -409,8 +402,8 @@ const Notifications = () => {
                     <>
                       <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
                       <span>
-                        {sendingProgress.total > 0 
-                          ? `Sending ${sendingProgress.current}/${sendingProgress.total}...` 
+                        {sendingProgress.total > 0
+                          ? `Sending ${sendingProgress.current}/${sendingProgress.total}...`
                           : 'Sending...'}
                       </span>
                     </>

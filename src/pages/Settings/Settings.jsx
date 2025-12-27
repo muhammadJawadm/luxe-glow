@@ -158,10 +158,10 @@ const Settings = () => {
                       <div className="text-sm text-gray-900">
                         {coupon.discountType === "percentage"
                           ? `${coupon.value}% off`
-                          : `$${coupon.value.toFixed(2)} off`}
+                          : `MVR ${coupon.value.toFixed(2)} off`}
                         {coupon.minOrder > 0 && (
                           <div className="text-xs text-gray-500">
-                            Min order: ${coupon.minOrder}
+                            Min order: MVR {coupon.minOrder}
                           </div>
                         )}
                       </div>
@@ -181,11 +181,10 @@ const Settings = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         onClick={() => toggleCouponStatus(coupon.id)}
-                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full cursor-pointer ${
-                          coupon.active
+                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full cursor-pointer ${coupon.active
                             ? "bg-green-100 text-green-800"
                             : "bg-gray-100 text-gray-800"
-                        }`}
+                          }`}
                       >
                         {coupon.active ? "Active" : "Inactive"}
                       </span>
@@ -216,7 +215,7 @@ const Settings = () => {
           isOpen={isCouponModalOpen}
           onClose={() => setIsCouponModalOpen(false)}
           coupon={selectedCoupon}
-          onSave={(newCoupon) => {}}
+          onSave={(newCoupon) => { }}
         />
       )}
       <DeleteModal

@@ -9,7 +9,7 @@ const PosBills = () => {
       billId: "BILL12345",
       customerName: "John Doe",
       billDate: "2025-04-01",
-      totalAmount: "$200.00",
+      totalAmount: "MVR 200.00",
       status: "Paid",
     },
     {
@@ -17,7 +17,7 @@ const PosBills = () => {
       billId: "BILL12346",
       customerName: "Jane Smith",
       billDate: "2025-04-02",
-      totalAmount: "$150.00",
+      totalAmount: "MVR 150.00",
       status: "Unpaid",
     },
     {
@@ -25,7 +25,7 @@ const PosBills = () => {
       billId: "BILL12347",
       customerName: "Alice Johnson",
       billDate: "2025-04-03",
-      totalAmount: "$300.00",
+      totalAmount: "MVR 300.00",
       status: "Overdue",
     },
     {
@@ -33,7 +33,7 @@ const PosBills = () => {
       billId: "BILL12348",
       customerName: "Bob Brown",
       billDate: "2025-04-04",
-      totalAmount: "$100.00",
+      totalAmount: "MVR 100.00",
       status: "Paid",
     },
   ];
@@ -78,13 +78,12 @@ const PosBills = () => {
                     <td className="px-6 py-3">{bill.totalAmount}</td>
                     <td className="px-6 py-3">
                       <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          bill.status === "Paid"
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${bill.status === "Paid"
                             ? "bg-green-100 text-green-800"
                             : bill.status === "Unpaid"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
                       >
                         {bill.status}
                       </span>

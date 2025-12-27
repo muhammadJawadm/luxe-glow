@@ -161,7 +161,7 @@ const Products = () => {
                       <td className="px-6 py-3 text-gray-600">
                         <div className="max-w-xs truncate">{item.description}</div>
                       </td>
-                      <td className="px-6 py-3 text-gray-600">${item.price}</td>
+                      <td className="px-6 py-3 text-gray-600">MVR {item.price}</td>
                       <td className="px-6 py-3">
                         <div className="flex items-center space-x-1 text-yellow-500">
                           <span className="ml-2 text-sm text-gray-600">

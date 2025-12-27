@@ -9,7 +9,7 @@ const PosPayment = () => {
       paymentId: "PAY12345",
       customerName: "John Doe",
       paymentDate: "2025-04-01",
-      totalAmount: "$200.00",
+      totalAmount: "MVR 200.00",
       status: "Completed",
     },
     {
@@ -17,7 +17,7 @@ const PosPayment = () => {
       paymentId: "PAY12346",
       customerName: "Jane Smith",
       paymentDate: "2025-04-02",
-      totalAmount: "$150.00",
+      totalAmount: "MVR 150.00",
       status: "Pending",
     },
     {
@@ -25,7 +25,7 @@ const PosPayment = () => {
       paymentId: "PAY12347",
       customerName: "Alice Johnson",
       paymentDate: "2025-04-03",
-      totalAmount: "$300.00",
+      totalAmount: "MVR 300.00",
       status: "Failed",
     },
     {
@@ -33,7 +33,7 @@ const PosPayment = () => {
       paymentId: "PAY12348",
       customerName: "Bob Brown",
       paymentDate: "2025-04-04",
-      totalAmount: "$100.00",
+      totalAmount: "MVR 100.00",
       status: "Completed",
     },
   ];
@@ -77,13 +77,12 @@ const PosPayment = () => {
                     <td className="px-6 py-3">{payment.totalAmount}</td>
                     <td className="px-6 py-3">
                       <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          payment.status === "Completed"
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${payment.status === "Completed"
                             ? "bg-green-100 text-green-800"
                             : payment.status === "Pending"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
                       >
                         {payment.status}
                       </span>

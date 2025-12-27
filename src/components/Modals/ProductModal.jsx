@@ -220,7 +220,7 @@ const ProductModal = ({ product, isOpen, onClose, onSave }) => {
             {/* Price */}
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700">
-                Price ($) <span className="text-red-500">*</span>
+                Price (MVR) <span className="text-red-500">*</span>
               </label>
               <input
                 type="number"

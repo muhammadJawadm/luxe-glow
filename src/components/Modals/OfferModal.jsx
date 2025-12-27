@@ -8,7 +8,7 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
   const [products, setProducts] = useState([]);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
-  
+
   const [formData, setFormData] = useState({
     product_id: "",
     expire_at: "",
@@ -22,12 +22,12 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
         .from("products")
         .select("id, name, price")
         .order("name");
-      
+
       if (!error && data) {
         setProducts(data);
       }
     };
-    
+
     if (isOpen) {
       fetchProducts();
     }
@@ -194,9 +194,9 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
         <div className="w-full mb-4">
           <label className="block mb-2 text-sm font-medium">Offer Image</label>
           <label className="cursor-pointer block w-full">
-            <input 
-              type="file" 
-              className="hidden" 
+            <input
+              type="file"
+              className="hidden"
               accept="image/*"
               onChange={handleImageChange}
             />
@@ -221,7 +221,7 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
           <option value="">-- Select a Product --</option>
           {products.map((product) => (
             <option key={product.id} value={product.id}>
-              {product.name} - ${product.price}
+              {product.name} - MVR {product.price}
             </option>
           ))}
         </select>

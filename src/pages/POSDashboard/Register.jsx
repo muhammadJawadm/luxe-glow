@@ -25,8 +25,8 @@ const Register = () => {
       openedAt: "April 10, 2025, 09:00 AM",
       closedAt: "April 10, 2025, 05:00 PM",
       duration: "8h",
-      cashAtOpen: "$200",
-      cashAtClose: "$1200",
+      cashAtOpen: "MVR 200",
+      cashAtClose: "MVR 1200",
     },
     {
       id: 2,
@@ -34,8 +34,8 @@ const Register = () => {
       openedAt: "April 11, 2025, 08:30 AM",
       closedAt: "April 11, 2025, 04:30 PM",
       duration: "8h",
-      cashAtOpen: "$150",
-      cashAtClose: "$950",
+      cashAtOpen: "MVR 150",
+      cashAtClose: "MVR 950",
     },
     {
       id: 3,
@@ -43,8 +43,8 @@ const Register = () => {
       openedAt: "April 12, 2025, 10:00 AM",
       closedAt: "April 12, 2025, 06:00 PM",
       duration: "8h",
-      cashAtOpen: "$100",
-      cashAtClose: "$700",
+      cashAtOpen: "MVR 100",
+      cashAtClose: "MVR 700",
     },
   ];
   return (

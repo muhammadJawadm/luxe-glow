@@ -224,7 +224,7 @@ const Offers = () => {
                       <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg px-3 py-2">
                         <p className="text-xs text-gray-600 mb-1">Product Price</p>
                         <p className="text-2xl font-bold text-primary">
-                          ${offer.products.price}
+                          MVR {offer.products.price}
                         </p>
                       </div>
                     )}

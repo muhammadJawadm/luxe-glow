@@ -35,11 +35,11 @@ const SellProductForm = ({ product, onSell }) => {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Price ($)
+            Price (MVR)
           </label>
           <div className="relative">
             <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-              $
+              MVR
             </span>
             <input
               type="number"

@@ -142,7 +142,7 @@ const OrderedProductModal = ({ isOpen, onClose, onSave, orderedProduct }) => {
                         <option value="">Select a product</option>
                         {products.map((product) => (
                             <option key={product.id} value={product.id}>
-                                {product.name} - ${product.price}
+                                {product.name} - MVR {product.price}
                             </option>
                         ))}
                     </select>
@@ -163,8 +163,7 @@ const OrderedProductModal = ({ isOpen, onClose, onSave, orderedProduct }) => {
                         <option value="">Select an order</option>
                         {orders.map((order) => (
                             <option key={order.id} value={order.id}>
-                                Order #{order.id} - {order.users?.name || "Unknown"} - $
-                                {order.total_amount} ({order.status})
+                                Order #{order.id} - {order.users?.name || "Unknown"} - MVR {order.total_amount} ({order.status})
                             </option>
                         ))}
                     </select>
