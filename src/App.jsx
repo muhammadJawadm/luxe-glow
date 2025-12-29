@@ -22,6 +22,8 @@ import PosPayment from "./pages/POSDashboard/PosPayment";
 import PosSell from "./pages/POSDashboard/PosSell";
 import Notifications from "./pages/Notifications/Notifications";
 import Inventory from "./pages/Inventory/Inventory";
+import Cart from "./pages/Cart/Cart";
+import Rewards from "./pages/Rewards/Rewards";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -45,6 +47,8 @@ function App() {
         <Route path="/product" element={<Products />} />
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/order" element={<Orders />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/rewards" element={<Rewards />} />
         <Route path="/ordered-products" element={<OrderedProducts />} />
         <Route path="/pos/sell" element={<PosSell />} />
         <Route path="/pos/register" element={<Register />} />
