@@ -26,7 +26,7 @@ export const sidebarLinks = [
   // { name: "Rewards", path: "/rewards", icon: <AiFillStar /> },
   { name: "Ordered Products", path: "/ordered-products", icon: <FiPackage /> },
   { name: "Notifications", path: "/notifications", icon: <MdEventNote /> },
-  { name: "Inventory", path: "/inventory", icon: <FiBox /> },
+  // { name: "Inventory", path: "/inventory", icon: <FiBox /> },
   { name: "Payment", path: "/payment", icon: <MdPayments /> },
   { name: "Content", path: "/content", icon: <MdContentCopy /> },
   { name: "Discount settings", path: "/setting", icon: <AiFillSetting /> },
