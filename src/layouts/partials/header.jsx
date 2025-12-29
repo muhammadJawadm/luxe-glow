@@ -1,11 +1,31 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { PiBellLight } from "react-icons/pi";
 import { RiCloseFill } from "react-icons/ri";
 import { Link } from "react-router-dom";
 import { IoArrowBack } from "react-icons/io5";
+import { getCurrentUser } from "../../services/authService";
 const Header = ({ header, link, arrow }) => {
   const [drop, setDrop] = useState(false);
   const [showMenue, setShowMenue] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    const user = getCurrentUser();
+    setCurrentUser(user);
+  }, []);
+
+  // Helper function to format email into display name
+  const getDisplayName = () => {
+    if (!currentUser?.email) return "Admin";
+
+    // Extract name from email (e.g., "admin@luxeglow.com" -> "Admin")
+    const emailPrefix = currentUser.email.split('@')[0];
+    // Capitalize first letter of each word
+    return emailPrefix
+      .split(/[._-]/)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
   return (
     <div>
       <div className="bg-white">
@@ -43,14 +63,13 @@ const Header = ({ header, link, arrow }) => {
                       src="https://images.pexels.com/photos/1499327/pexels-photo-1499327.jpeg?auto=compress&cs=tinysrgb&w=1600"
                       alt="profile"
                     />
-                    <span className="hidden sm:block">Jane Doe</span>
+                    <span className="hidden sm:block">{getDisplayName()}</span>
                   </div>
                 </button>
               </div>
               <div
-                className={`z-50 ${
-                  drop ? null : "hidden"
-                } absolute w-full px-4 my-4 text-gray-950 font-medium list-none bg-white backdrop-blur-md bg-opacity-10 divide-y divide-gray-100 rounded-lg shadow`}
+                className={`z-50 ${drop ? null : "hidden"
+                  } absolute w-full px-4 my-4 text-gray-950 font-medium list-none bg-white backdrop-blur-md bg-opacity-10 divide-y divide-gray-100 rounded-lg shadow`}
               >
                 <ul className="py-2" aria-labelledby="user-menu-button">
                   <li>
@@ -69,9 +88,8 @@ const Header = ({ header, link, arrow }) => {
       </div>
 
       <aside
-        className={`fixed top-0 right-0 z-40 w-96 text-black bg-gradient-to-b from-gray-50 to-gray-100 h-screen ${
-          showMenue ? "block" : `hidden`
-        }`}
+        className={`fixed top-0 right-0 z-40 w-96 text-black bg-gradient-to-b from-gray-50 to-gray-100 h-screen ${showMenue ? "block" : `hidden`
+          }`}
         aria-label="Sidebar"
       >
         <div className="h-full px-3 py-4 overflow-y-auto space-y-3">

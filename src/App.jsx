@@ -1,6 +1,6 @@
 import { useState } from "react";
 import "./App.css";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, Navigate } from "react-router-dom";
 import RootLayout from "./layouts/RootLayout";
 import Home from "./pages/Home";
 import Login from "./pages/Auth/Login";
@@ -22,11 +22,23 @@ import PosPayment from "./pages/POSDashboard/PosPayment";
 import PosSell from "./pages/POSDashboard/PosSell";
 import Notifications from "./pages/Notifications/Notifications";
 import Inventory from "./pages/Inventory/Inventory";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<RootLayout />}>
+      {/* Public route - Login */}
+      <Route path="/login" element={<Login />} />
+
+      {/* Protected routes - All dashboard routes */}
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <RootLayout />
+          </ProtectedRoute>
+        }
+      >
         <Route index element={<Home />} />
         <Route path="/users" element={<Users />} />
         <Route path="/category" element={<Categories />} />
@@ -47,9 +59,12 @@ function App() {
         <Route path="/content" element={<Content />} />
         <Route path="/setting" element={<Settings />} />
       </Route>
-      <Route path="login" element={<Login />} />
+
+      {/* Catch all - redirect to login */}
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 }
 
 export default App;
+

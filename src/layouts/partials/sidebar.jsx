@@ -9,13 +9,23 @@ import { MdArrowDropDown } from "react-icons/md";
 import { sidebarLinks } from "../../components/data";
 import Logo from "../../assets/Logo.svg";
 import { useState } from "react";
+import { logout } from "../../services/authService";
 
 const Sidebar = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [isPOSOpen, setIsPOSOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+
   const handlePOSToggle = () => {
     setIsPOSOpen((prev) => !prev);
+  };
+
+  const handleLogout = async () => {
+    const result = await logout();
+    if (result.success) {
+      navigate("/login", { replace: true });
+    }
   };
 
   const isSubLinkActive = (subLinks) =>
@@ -48,9 +58,8 @@ const Sidebar = () => {
         </div>
 
         <aside
-          className={`fixed top-0 left-0 z-40 w-64 border-r bg-white h-screen ${
-            showMenu ? "" : "hidden"
-          } lg:block`}
+          className={`fixed top-0 left-0 z-40 w-64 border-r bg-white h-screen ${showMenu ? "" : "hidden"
+            } lg:block`}
           aria-label="Sidebar"
         >
           <div
@@ -89,11 +98,10 @@ const Sidebar = () => {
                     {link.subLinks ? (
                       <>
                         <button
-                          className={`flex items-center py-2 px-5 rounded-lg w-full text-left ${
-                            isSubLinkActive(link.subLinks)
-                              ? "bg-primary bg-opacity-70 drop-shadow text-gray-50 font-semibold"
-                              : "text-gray-600 hover:bg-primary/10 hover:text-primary hover:font-medium"
-                          }`}
+                          className={`flex items-center py-2 px-5 rounded-lg w-full text-left ${isSubLinkActive(link.subLinks)
+                            ? "bg-primary bg-opacity-70 drop-shadow text-gray-50 font-semibold"
+                            : "text-gray-600 hover:bg-primary/10 hover:text-primary hover:font-medium"
+                            }`}
                           onClick={link.name === "POS" && handlePOSToggle}
                         >
                           {link.icon}
@@ -166,13 +174,13 @@ const Sidebar = () => {
             </div>
 
             <div className="mt-4">
-              <Link
-                to="/login"
-                className="flex items-center px-5 py-2 rounded-lg bg-primary/5 text-gray-600"
+              <button
+                onClick={handleLogout}
+                className="flex items-center w-full px-5 py-2 rounded-lg bg-primary/5 text-gray-600 hover:bg-primary/10 hover:text-primary transition-colors"
               >
                 <RiLogoutCircleLine />
                 <p className="ml-2">Logout</p>
-              </Link>
+              </button>
             </div>
           </div>
         </aside>
