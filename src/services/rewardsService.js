@@ -26,6 +26,30 @@ export const fetchAllRewards = async () => {
     }
 };
 
+export const fetchRewards = async (id) => {
+    try {
+        const { data, error } = await supabase
+            .from('rewards')
+            .select(`
+        *
+      `)
+            .eq('uid', id)
+            .single();
+
+        if (error) {
+            console.error('Error fetching rewards:', error);
+            return [];
+        }
+
+        return data || [];
+    } catch (error) {
+        console.error('Error in fetchRewards:', error);
+        return [];
+    }
+};
+
+
+
 /**
  * Update user rewards (stars)
  * Uses upsert to create or update

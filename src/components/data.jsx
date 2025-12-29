@@ -7,37 +7,15 @@ import {
   MdContentCopy,
   MdPayments,
   MdOutlineBrandingWatermark,
-  MdAppRegistration,
   MdEventNote,
   MdReceipt,
 } from "react-icons/md";
-import { FaBookBookmark } from "react-icons/fa6";
 import { MdDashboardCustomize } from "react-icons/md";
-import { GiCardExchange } from "react-icons/gi";
-import { AiFillProduct, AiFillSetting, AiFillStar } from "react-icons/ai";
+import { AiFillProduct, AiFillSetting } from "react-icons/ai";
 import { FiBox, FiShoppingCart, FiTag, FiPackage } from "react-icons/fi";
-import { RiShoppingBag3Fill } from "react-icons/ri";
 import { BsCart3 } from "react-icons/bs";
 export const sidebarLinks = [
   { name: "Dashboard", path: "/", icon: <MdDashboardCustomize /> },
-  {
-    name: "POS",
-    icon: <RiShoppingBag3Fill />,
-    subLinks: [
-      {
-        name: "Sell",
-        path: "/pos/sell",
-        icon: <MdAppRegistration />,
-      },
-      {
-        name: "Register",
-        path: "/pos/register",
-        icon: <MdAppRegistration />,
-      },
-      { name: "Payments", path: "/pos/payments", icon: <MdPayments /> },
-      { name: "Bills", path: "/pos/bills", icon: <MdReceipt /> },
-    ],
-  },
   { name: "Customers", path: "/users", icon: <FaUsers /> },
   { name: "Categories", path: "/category", icon: <MdCategory /> },
   { name: "Brands", path: "/brand", icon: <MdOutlineBrandingWatermark /> },
@@ -45,7 +23,7 @@ export const sidebarLinks = [
   { name: "Offers", path: "/offer", icon: <FiTag /> },
   { name: "Orders", path: "/order", icon: <FiShoppingCart /> },
   { name: "Carts", path: "/cart", icon: <BsCart3 /> },
-  { name: "Rewards", path: "/rewards", icon: <AiFillStar /> },
+  // { name: "Rewards", path: "/rewards", icon: <AiFillStar /> },
   { name: "Ordered Products", path: "/ordered-products", icon: <FiPackage /> },
   { name: "Notifications", path: "/notifications", icon: <MdEventNote /> },
   { name: "Inventory", path: "/inventory", icon: <FiBox /> },

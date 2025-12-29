@@ -3,13 +3,14 @@ import Header from "../../layouts/partials/header";
 import { FiSearch } from "react-icons/fi";
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";
 import { fetchUsers, deleteUser, updateUser } from "../../services/userServices";
-
+import { fetchRewards } from "../../services/rewardsService";
 const Users = () => {
   const [usersData, setUsersData] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState(null);
+  // const [userRewards, setUserRewards] = useState({});
   const [editFormData, setEditFormData] = useState({
     name: "",
     email: "",
@@ -23,6 +24,7 @@ const Users = () => {
         setLoading(true);
         const response = await fetchUsers();
         setUsersData(response);
+        console.log(response);
         setFilteredUsers(response);
       } catch (error) {
         console.error("Error fetching users:", error);
@@ -164,6 +166,7 @@ const Users = () => {
                   <th className="px-6 py-3">Email</th>
                   <th className="px-6 py-3">Phone No</th>
                   <th className="px-6 py-3">Last Seen</th>
+                  <th className="px-6 py-3">Rewards</th>
                   <th className="px-6 py-3">Status</th>
                   <th className="px-6 py-3">Action</th>
                 </tr>
@@ -244,7 +247,11 @@ const Users = () => {
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-3">
+                      <td className="px-6 py-3 flex p-2 gap-1 ml-3 font-bold">
+                        {user.rewards?.stars || 0}
+                        <AiFillStar className="text-yellow-500 mt-0.5" />
+                      </td>
+                      <td className="px-6 py-3 ">
                         {editingUser === user.id ? (
                           <label className="flex items-center space-x-2">
                             <input
