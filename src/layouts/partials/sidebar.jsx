@@ -87,8 +87,8 @@ const Sidebar = () => {
                   >
                     <img
                       src={Logo}
-                      alt="Kinnected Logo"
-                      className="h-24 w-auto mr-2"
+                      alt="LuxeGlow Logo"
+                      className="h-16 w-auto mr-2"
                     />
                   </Link>
                 </li>
