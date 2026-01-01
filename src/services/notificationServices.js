@@ -57,7 +57,6 @@ export const sendPushNotification = async (notificationData) => {
                 sub_title: notificationData.sub_title || null,
                 image_url: notificationData.image_url || null,
                 sender: notificationData.sender || 'system',
-                // Additional data for the notification payload
                 ...notificationData.additionalData
             }
         });

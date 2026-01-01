@@ -14,7 +14,7 @@ import Offers from "./pages/Offers/Offers";
 import Content from "./pages/Content/Content";
 import Payment from "./pages/Pyament/Payment";
 import Brand from "./pages/Brand/Brand";
-import Settings from "./pages/Settings/Settings";
+import Discount from "./pages/Discount/Discount";
 import Notifications from "./pages/Notifications/Notifications";
 import Inventory from "./pages/Inventory/Inventory";
 import Cart from "./pages/Cart/Cart";
@@ -51,7 +51,7 @@ function App() {
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/payment" element={<Payment />} />
         <Route path="/content" element={<Content />} />
-        <Route path="/setting" element={<Settings />} />
+        <Route path="/discount" element={<Discount />} />
       </Route>
 
       {/* Catch all - redirect to login */}

@@ -29,5 +29,5 @@ export const sidebarLinks = [
   // { name: "Inventory", path: "/inventory", icon: <FiBox /> },
   { name: "Payment", path: "/payment", icon: <MdPayments /> },
   { name: "Content", path: "/content", icon: <MdContentCopy /> },
-  { name: "Discount settings", path: "/setting", icon: <AiFillSetting /> },
+  { name: "Discount", path: "/discount", icon: <AiFillSetting /> },
 ];

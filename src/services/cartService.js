@@ -4,16 +4,11 @@ import { createBaseService } from "./baseService";
 
 const cartService = createBaseService('cart');
 
-
 export const fetchAllCarts = (page, limit) => cartService.getAll({ select: "*,users(*),products(*, categories(*), product_images(*))", page, limit })
-
 
 export const fetchCartById = (id) => cartService.getById(id, `*,users(*),products(*, categories(*), product_images(*))`)
 
-
 export const deleteCartItem = (cartId) => cartService.deleteById(cartId)
-
-
 
 export const clearUserCart = async (userId) => {
     try {

@@ -11,7 +11,7 @@ import {
 } from "../../services/discountServices";
 import { fetchProducts } from "../../services/productServices";
 
-const Settings = () => {
+const Discount = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedDiscount, setSelectedDiscount] = useState(null);
@@ -379,4 +379,4 @@ const Settings = () => {
   );
 };
 
-export default Settings;
+export default Discount;

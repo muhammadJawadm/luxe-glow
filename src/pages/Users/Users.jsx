@@ -3,7 +3,6 @@ import Header from "../../layouts/partials/header";
 import { FiSearch, FiEdit, FiTrash2, FiX } from "react-icons/fi";
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";
 import { fetchUsers, deleteUser, updateUser } from "../../services/userServices";
-import { fetchRewards } from "../../services/rewardsService";
 import Pagination from "../../components/Pagination";
 const Users = () => {
   const [usersData, setUsersData] = useState([]);
