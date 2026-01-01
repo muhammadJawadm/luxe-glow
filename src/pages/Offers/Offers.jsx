@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Header from "../../layouts/partials/header";
-import { FiEdit, FiSearch, FiTrash2, FiTag, FiCalendar, FiPackage } from "react-icons/fi";
+import { FiEdit, FiPlus, FiSearch, FiTrash2, FiTag, FiCalendar, FiPackage } from "react-icons/fi";
 import DeleteModal from "../../components/Modals/DeleteModal";
 import OfferModal from "../../components/Modals/OfferModal";
 import { fetchOffers, deleteOffer } from "../../services/offersServices";
@@ -133,7 +133,7 @@ const Offers = () => {
             onClick={handleAddNewOffer}
             className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 cursor-pointer text-white font-medium rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105"
           >
-            <FiTag className="text-lg" />
+            <FiPlus className="text-lg" />
             Add New Offer
           </button>
         </div>

@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { PiBellLight } from "react-icons/pi";
 import { RiCloseFill } from "react-icons/ri";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { IoArrowBack } from "react-icons/io5";
-import { getCurrentUser } from "../../services/authService";
+import { FiUser, FiLogOut, FiX } from "react-icons/fi";
+import { getCurrentUser, logout } from "../../services/authService";
 const Header = ({ header, link, arrow }) => {
   const [drop, setDrop] = useState(false);
   const [showMenue, setShowMenue] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const user = getCurrentUser();
@@ -25,6 +28,16 @@ const Header = ({ header, link, arrow }) => {
       .split(/[._-]/)
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/auth/login');
+  };
+
+  const handleProfileClick = () => {
+    setDrop(false);
+    setIsProfileModalOpen(true);
   };
   return (
     <div>
@@ -69,16 +82,26 @@ const Header = ({ header, link, arrow }) => {
               </div>
               <div
                 className={`z-50 ${drop ? null : "hidden"
-                  } absolute w-full px-4 my-4 text-gray-950 font-medium list-none bg-white backdrop-blur-md bg-opacity-10 divide-y divide-gray-100 rounded-lg shadow`}
+                  } absolute right-0 w-48 my-4 text-gray-950 font-medium list-none bg-white divide-y divide-gray-100 rounded-lg shadow-lg border border-gray-200`}
               >
                 <ul className="py-2" aria-labelledby="user-menu-button">
                   <li>
-                    <Link
-                      to="/profile"
-                      className="block px-4 py-2 text-sm hover:bg-gray-250 hover:text-white hover:rounded-md "
+                    <button
+                      onClick={handleProfileClick}
+                      className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 transition-colors"
                     >
+                      <FiUser className="text-gray-600" />
                       Profile
-                    </Link>
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                      <FiLogOut className="text-red-600" />
+                      Logout
+                    </button>
                   </li>
                 </ul>
               </div>
@@ -112,6 +135,71 @@ const Header = ({ header, link, arrow }) => {
           </div>
         </div>
       </aside>
+
+      {/* Profile Modal */}
+      {isProfileModalOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 transition-opacity bg-gray-900/50 backdrop-blur-sm" onClick={() => setIsProfileModalOpen(false)}></div>
+
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div className="flex items-center justifybetween mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 flex-1">Profile Information</h3>
+                  <button
+                    onClick={() => setIsProfileModalOpen(false)}
+                    className="text-gray-400 hover:text-gray-500"
+                  >
+                    <FiX className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex justify-center">
+                    <img
+                      className="w-24 h-24 rounded-full object-cover border-4 border-primary"
+                      src="https://images.pexels.com/photos/1499327/pexels-photo-1499327.jpeg?auto=compress&cs=tinysrgb&w=1600"
+                      alt="Profile"
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                      <div className="px-4 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                        {getDisplayName()}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                      <div className="px-4 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                        {currentUser?.email || 'Not available'}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                      <div className="px-4 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                        Administrator
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button
+                  onClick={() => setIsProfileModalOpen(false)}
+                  className="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

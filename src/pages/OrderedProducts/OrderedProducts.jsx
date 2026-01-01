@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Header from "../../layouts/partials/header";
-import { FiEdit, FiSearch, FiTrash2, FiPackage, FiShoppingCart, FiCalendar } from "react-icons/fi";
+import { FiEdit, FiPlus, FiSearch, FiTrash2, FiPackage, FiShoppingCart, FiCalendar } from "react-icons/fi";
 import DeleteModal from "../../components/Modals/DeleteModal";
 import OrderedProductModal from "../../components/Modals/OrderedProductModal";
 import {
@@ -142,7 +142,7 @@ const OrderedProducts = () => {
                         onClick={handleAddNew}
                         className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 cursor-pointer text-white font-medium rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105"
                     >
-                        <FiPackage className="text-lg" />
+                        <FiPlus className="text-lg" />
                         Add Ordered Product
                     </button>
                 </div>

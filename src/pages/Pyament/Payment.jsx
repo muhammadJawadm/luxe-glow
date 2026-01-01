@@ -95,7 +95,7 @@ const Payment = () => {
                           className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
                           title="View Details"
                         >
-                          <FiEye />
+                          <FiEye className="text-lg" />
                         </button>
                       </div>
                     </td>
