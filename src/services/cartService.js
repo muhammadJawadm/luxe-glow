@@ -1,61 +1,23 @@
 import { supabase } from '../lib/supabase';
 
-/**
- * Fetch all cart items with user and product details
- * Joins cart with users and products tables
- */
-export const fetchAllCarts = async () => {
-    try {
-        const { data, error } = await supabase
-            .from('cart')
-            .select(`
-        *,users(*),products(*, categories(*))
-      `)
-            .order('created_at', { ascending: false });
+import { createBaseService } from "./baseService";
 
-        if (error) {
-            console.error('Error fetching carts:', error);
-            return [];
-        }
+const cartService = createBaseService('cart');
 
-        return data || [];
-    } catch (error) {
-        console.error('Error in fetchAllCarts:', error);
-        return [];
-    }
-};
 
-/**
- * Delete a cart item by ID
- */
-export const deleteCartItem = async (cartId) => {
-    try {
-        const { data, error } = await supabase
-            .from('cart')
-            .delete()
-            .eq('id', cartId);
+export const fetchAllCarts = (page, limit) => cartService.getAll({ select: "*,users(*),products(*, categories(*), product_images(*))", page, limit })
 
-        if (error) {
-            console.error('Error deleting cart item:', error);
-            return { success: false, error: error.message };
-        }
 
-        return { success: true, data };
-    } catch (error) {
-        console.error('Error in deleteCartItem:', error);
-        return { success: false, error: error.message };
-    }
-};
+export const fetchCartById = (id) => cartService.getById(id, `*,users(*),products(*, categories(*), product_images(*))`)
 
-/**
- * Clear all cart items for a specific user
- */
+
+export const deleteCartItem = (cartId) => cartService.deleteById(cartId)
+
+
+
 export const clearUserCart = async (userId) => {
     try {
-        const { data, error } = await supabase
-            .from('cart')
-            .delete()
-            .eq('uid', userId);
+        const { data, error } = await supabase.from('cart').delete().eq('uid', userId);
 
         if (error) {
             console.error('Error clearing user cart:', error);
@@ -69,22 +31,13 @@ export const clearUserCart = async (userId) => {
     }
 };
 
-/**
- * Get cart statistics
- */
 export const getCartStatistics = async () => {
     try {
-        const { data, error } = await supabase
-            .from('cart')
-            .select('id, quantity, products(*)');
-
+        const { data, error } = cartService.getAll({
+            select: 'id, quantity, products(*)'
+        })
         if (error) {
-            console.error('Error fetching cart statistics:', error);
-            return {
-                totalItems: 0,
-                totalProducts: 0,
-                estimatedValue: 0
-            };
+            throw error;
         }
 
         const totalItems = data?.length || 0;
@@ -101,10 +54,6 @@ export const getCartStatistics = async () => {
         };
     } catch (error) {
         console.error('Error in getCartStatistics:', error);
-        return {
-            totalItems: 0,
-            totalProducts: 0,
-            estimatedValue: 0
-        };
+        throw error;
     }
 };

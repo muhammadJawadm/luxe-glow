@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import DeleteModal from "../../components/Modals/DeleteModal";
 import Header from "../../layouts/partials/header";
-import { FiEye, FiSearch, FiTrash2 } from "react-icons/fi";
+import { FiEye, FiSearch, FiTrash2, FiEdit2 } from "react-icons/fi";
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";
 import { Link } from "react-router-dom";
 import { fetchProducts, deleteProduct } from "../../services/productServices";
+import { BiError } from "react-icons/bi";
+import Pagination from "../../components/Pagination";
 
 const Products = () => {
 
@@ -14,14 +16,18 @@ const Products = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [productToDelete, setProductToDelete] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
 
   useEffect(() => {
     const fetchProductsData = async () => {
       try {
         setLoading(true);
-        const response = await fetchProducts();
-        setProductData(response);
-        setFilteredProducts(response);
+        const response = await fetchProducts(currentPage, itemsPerPage);
+        setProductData(response.data || []);
+        setFilteredProducts(response.data || []);
+        setTotalItems(response.count || 0);
         console.log("Fetched products data:", response);
       } catch (error) {
         console.error("Error fetching products data:", error);
@@ -31,7 +37,7 @@ const Products = () => {
       }
     }
     fetchProductsData();
-  }, []);
+  }, [currentPage]);
 
   // Search functionality
   useEffect(() => {
@@ -151,15 +157,15 @@ const Products = () => {
         <div className="my-3">
           <div className="relative overflow-x-auto bg-white sm:rounded-lg border-b border-gray-200">
             <table className="w-full text-left rounded-xl overflow-hidden shadow-sm border border-gray-100">
-              <thead className="bg-gradient-to-r from-gray-50 to-gray-100/70 text-gray-700">
+              <thead className="bg-gradient-to-r from-primary to-primary/80 text-white">
                 <tr>
-                  <th className="px-6 py-3 font-medium">name</th>
-                  <th className="px-6 py-3 font-medium">description</th>
-                  <th className="px-6 py-3 font-medium">Price</th>
-                  <th className="px-6 py-3 font-medium">Rating</th>
-                  <th className="px-6 py-3 font-medium">created_at</th>
-                  <th className="px-6 py-3 font-medium">stock quantity</th>
-                  <th className="px-6 py-3 font-medium">Actions</th>
+                  <th className="px-6 py-3.5 font-medium">Name</th>
+                  {/* <th className="px-6 py-3.5 font-medium">Description</th> */}
+                  <th className="px-6 py-3.5 font-medium">Price</th>
+                  <th className="px-6 py-3.5 font-medium">Rating</th>
+                  <th className="px-6 py-3.5 font-medium">Created At</th>
+                  <th className="px-6 py-3.5 font-medium">Stock Quantity</th>
+                  <th className="px-6 py-3.5 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200/50">
@@ -193,9 +199,6 @@ const Products = () => {
                           </h3>
                         </div>
                       </td>
-                      <td className="px-6 py-3 text-gray-600">
-                        <div className="max-w-xs truncate">{item.description}</div>
-                      </td>
                       <td className="px-6 py-3 text-gray-600">MVR {item.price}</td>
                       <td className="px-6 py-3">
                         <div className="flex items-center space-x-1 text-yellow-500">
@@ -218,9 +221,7 @@ const Products = () => {
                         <div className="flex items-center">
                           {item.stock_level < 5 ? (
                             <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-100 text-red-800 border border-red-300">
-                              <svg className="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                              </svg>
+                              <BiError />
                               {item.stock_level} left
                             </span>
                           ) : item.stock_level < 10 ? (
@@ -235,20 +236,20 @@ const Products = () => {
                         </div>
                       </td>
                       <td className="px-6 py-3">
-                        <div className="flex space-x-1">
+                        <div className="flex space-x-2">
                           <Link
                             to={`/product/${item.id}`}
                             className="p-2 text-gray-500 cursor-pointer hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
                             title="View Details"
                           >
-                            <FiEye />
+                            <FiEye className="text-lg" />
                           </Link>
                           <button
                             onClick={() => handleDeleteClick(item)}
                             className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
                             title="Delete Product"
                           >
-                            <FiTrash2 />
+                            <FiTrash2 className="text-lg" />
                           </button>
                         </div>
                       </td>
@@ -269,6 +270,13 @@ const Products = () => {
         }}
         entityType={"Product"}
         onDelete={handleDeleteConfirm}
+      />
+
+      <Pagination
+        currentPage={currentPage}
+        totalItems={totalItems}
+        itemsPerPage={itemsPerPage}
+        onPageChange={(page) => setCurrentPage(page)}
       />
     </div>
   );

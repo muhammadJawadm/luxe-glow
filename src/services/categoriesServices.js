@@ -1,60 +1,14 @@
-import { supabase } from "../lib/supabase";
 
-export const fetchCategories = async () => {
-    const { data, error } = await supabase.from("categories").select("*");
-    if (error) return [];
-    return data;
-};
+import { createBaseService } from "./baseService";
 
-export const fetchCategoryById = async (id) => {
-    const { data, error } = await supabase
-        .from("categories")
-        .select("*")
-        .eq("id", id)
-        .single();
+const categoriesService = createBaseService('categories');
 
-    if (error) {
-        console.error('Error fetching category by ID:', error);
-        return null;
-    }
-    return data;
-};
+export const fetchCategories = (page, limit) => categoriesService.getAll({ select: '*', page, limit });
 
-export const createCategory = async (categoryData) => {
-    const { data, error } = await supabase
-        .from("categories")
-        .insert(categoryData)
-        .select();
-    if (error) {
-        console.error('Error creating category:', error);
-        return null;
-    }
-    return data;
-};
+export const fetchCategoryById = (id) => categoriesService.getById(id, '*');
 
-export const updateCategory = async (id, updatedData) => {
-    const { data, error } = await supabase
-        .from("categories")
-        .update(updatedData)
-        .eq("id", id)
-        .select();
+export const createCategory = (categoryData) => categoriesService.create(categoryData);
 
-    if (error) {
-        console.error('Error updating category:', error);
-        return null;
-    }
-    return data;
-};
+export const updateCategory = (id, updatedData) => categoriesService.updateById(id, updatedData);
 
-export const deleteCategory = async (id) => {
-    const { data, error } = await supabase
-        .from("categories")
-        .delete()
-        .eq("id", id);
-
-    if (error) {
-        console.error('Error deleting category:', error);
-        return null;
-    }
-    return data;
-};
+export const deleteCategory = (id) => categoriesService.deleteById(id);

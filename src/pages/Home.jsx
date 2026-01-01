@@ -21,6 +21,7 @@ import { fetchPayments } from "../services/paymentsServices";
 import { fetchOffers } from "../services/offersServices";
 import { fetchCategories } from "../services/categoriesServices";
 import { fetchBrands } from "../services/brandsServices";
+import { fetchAllCarts } from "../services/cartService";
 
 const Home = () => {
   const [stats, setStats] = useState({
@@ -48,6 +49,7 @@ const Home = () => {
           offersData,
           categoriesData,
           brandsData,
+          cartsData
         ] = await Promise.all([
           fetchUsers(),
           fetchProducts(),
@@ -56,6 +58,7 @@ const Home = () => {
           fetchOffers(),
           fetchCategories(),
           fetchBrands(),
+          fetchAllCarts()
         ]);
 
         // Update stats with actual counts
@@ -67,6 +70,7 @@ const Home = () => {
           offers: offersData?.length || 0,
           categories: categoriesData?.length || 0,
           brands: brandsData?.length || 0,
+          carts: cartsData?.length || 0,
         });
       } catch (error) {
         console.error("Error fetching dashboard stats:", error);
@@ -144,6 +148,14 @@ const Home = () => {
               count={loading ? "..." : stats.brands}
               icon={TbBrandSuperhuman}
               link="/brand"
+              bgColor="bg-pink-50"
+              iconColor="text-pink-600"
+            />
+            <Card
+              title="Carts"
+              count={loading ? "..." : stats.carts}
+              icon={TbBrandSuperhuman}
+              link="/cart"
               bgColor="bg-pink-50"
               iconColor="text-pink-600"
             />

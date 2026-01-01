@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Header from "../../layouts/partials/header";
-import { FiEdit2, FiSearch, FiTrash2 } from "react-icons/fi";
+import { FiEdit2, FiSearch, FiTrash2, FiPlus } from "react-icons/fi";
 import InventoryModal from "../../components/Modals/InventoryModal";
 
 const Inventory = () => {
@@ -79,21 +79,19 @@ const Inventory = () => {
         <div className="flex justify-between items-center mb-6">
           <div className="flex space-x-4">
             <button
-              className={`px-4 py-2 rounded-md ${
-                selectedTab === "inStock"
-                  ? "bg-primary text-white"
-                  : "bg-gray-200 text-gray-700"
-              }`}
+              className={`px-4 py-2 rounded-md ${selectedTab === "inStock"
+                ? "bg-primary text-white"
+                : "bg-gray-200 text-gray-700"
+                }`}
               onClick={() => setSelectedTab("inStock")}
             >
               In Stock
             </button>
             <button
-              className={`px-4 py-2 rounded-md ${
-                selectedTab === "lowStock"
-                  ? "bg-primary text-white"
-                  : "bg-gray-200 text-gray-700"
-              }`}
+              className={`px-4 py-2 rounded-md ${selectedTab === "lowStock"
+                ? "bg-primary text-white"
+                : "bg-gray-200 text-gray-700"
+                }`}
               onClick={() => setSelectedTab("lowStock")}
             >
               Low Stock
@@ -101,21 +99,22 @@ const Inventory = () => {
           </div>
           <button
             onClick={handleAddNewItem}
-            className="px-4 py-2.5 bg-primary text-white rounded-lg shadow-sm hover:bg-primary/80"
+            className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary/80 text-white font-medium rounded-lg shadow-sm transition-colors duration-200"
           >
+            <FiPlus className="text-lg" />
             Add Inventory Item
           </button>
         </div>
 
         <div className="overflow-x-auto bg-white sm:rounded-lg border-b border-gray-200">
           <table className="w-full text-left rounded-xl overflow-hidden shadow-sm border border-gray-100">
-            <thead className="bg-gradient-to-r from-gray-50 to-gray-100/70 text-gray-700">
+            <thead className="bg-gradient-to-r from-primary to-primary/80 text-white">
               <tr>
-                <th className="px-6 py-3 font-medium">Title</th>
-                <th className="px-6 py-3 font-medium">Description</th>
-                <th className="px-6 py-3 font-medium">Date & Time</th>
-                <th className="px-6 py-3 font-medium">Quantity</th>
-                <th className="px-6 py-3 font-medium">Actions</th>
+                <th className="px-6 py-3.5 font-medium">Title</th>
+                <th className="px-6 py-3.5 font-medium">Description</th>
+                <th className="px-6 py-3.5 font-medium">Date & Time</th>
+                <th className="px-6 py-3.5 font-medium">Quantity</th>
+                <th className="px-6 py-3.5 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200/50">
@@ -149,13 +148,15 @@ const Inventory = () => {
                     <div className="flex space-x-2">
                       <button
                         onClick={() => handleEditClick(item)}
-                        className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-md transition-colors"
+                        className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                        title="Edit Item"
                       >
                         <FiEdit2 />
                       </button>
                       <button
                         onClick={() => setIsDeleteModalOpen(true)}
                         className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                        title="Delete Item"
                       >
                         <FiTrash2 />
                       </button>

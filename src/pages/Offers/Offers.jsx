@@ -4,6 +4,7 @@ import { FiEdit, FiSearch, FiTrash2, FiTag, FiCalendar, FiPackage } from "react-
 import DeleteModal from "../../components/Modals/DeleteModal";
 import OfferModal from "../../components/Modals/OfferModal";
 import { fetchOffers, deleteOffer } from "../../services/offersServices";
+import Pagination from "../../components/Pagination";
 
 const Offers = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -14,14 +15,18 @@ const Offers = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [offerToDelete, setOfferToDelete] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(12);
+  const [totalItems, setTotalItems] = useState(0);
 
   useEffect(() => {
     const fetchOffersData = async () => {
       try {
         setLoading(true);
-        const response = await fetchOffers();
-        setOffersData(response || []);
-        setFilteredOffers(response || []);
+        const response = await fetchOffers(currentPage, itemsPerPage);
+        setOffersData(response.data || []);
+        setFilteredOffers(response.data || []);
+        setTotalItems(response.count || 0);
         console.log("Fetched offers:", response);
       } catch (error) {
         console.error("Error fetching offers data:", error);
@@ -32,7 +37,7 @@ const Offers = () => {
     };
 
     fetchOffersData();
-  }, []);
+  }, [currentPage]);
 
   // Search functionality
   useEffect(() => {
@@ -185,14 +190,14 @@ const Offers = () => {
                       <div className="absolute bottom-4 right-4 flex gap-2">
                         <button
                           onClick={() => handleEditClick(offer)}
-                          className="p-2.5 rounded-full bg-white/90 text-primary hover:bg-white transition-all duration-200 shadow-lg"
+                          className="p-2.5 rounded-full bg-white/90 text-blue-600 hover:bg-white transition-all duration-200 shadow-lg"
                           title="Edit Offer"
                         >
                           <FiEdit className="text-lg" />
                         </button>
                         <button
                           onClick={() => handleDeleteClick(offer)}
-                          className="p-2.5 rounded-full bg-white/90 text-red-500 hover:bg-white transition-all duration-200 shadow-lg"
+                          className="p-2.5 rounded-full bg-white/90 text-red-600 hover:bg-white transition-all duration-200 shadow-lg"
                           title="Delete Offer"
                         >
                           <FiTrash2 className="text-lg" />
@@ -278,6 +283,13 @@ const Offers = () => {
         }}
         onDelete={handleDeleteConfirm}
         entityType={"Offer"}
+      />
+
+      <Pagination
+        currentPage={currentPage}
+        totalItems={totalItems}
+        itemsPerPage={itemsPerPage}
+        onPageChange={(page) => setCurrentPage(page)}
       />
     </div>
   );

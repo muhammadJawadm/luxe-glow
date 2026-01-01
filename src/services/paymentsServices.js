@@ -1,37 +1,11 @@
-import { supabase } from "../lib/supabase";
+import { createBaseService } from "./baseService";
 
-export const fetchPayments = async () => {
-    const { data, error } = await supabase.from('payments').select('*, users(*)');
-    if (error) {
-        console.error('Error fetching payments:', error);
-        return null;
-    }
-    return data;
-}
+const paymentsService = createBaseService('payments');
 
-export const fetchPaymentById = async (paymentId) => {
-    const { data, error } = await supabase.from('payments').select('*').eq('id', paymentId);
-    if (error) {
-        console.error('Error fetching payment by ID:', error);
-        return null;
-    }
-    return data;
-}
+export const fetchPayments = (page, limit) => paymentsService.getAll({ select: "*, users(*), orders(*)", page, limit });
 
-export const updatePayment = async (paymentId, updatedData) => {
-    const { data, error } = await supabase.from('payments').update(updatedData).eq('id', paymentId);
-    if (error) {
-        console.error('Error updating payment:', error);
-        return null;
-    }
-    return data;
-}
+export const fetchPaymentById = (id) => paymentsService.getById(id, "*, users(*), orders(*)")
 
-export const deleteCategory = async (categoryId) => {
-    const { data, error } = await supabase.from('payments').delete().eq('id', paymentId);
-    if (error) {
-        console.error('Error deleting payment:', error);
-        return null;
-    }
-    return data;
-}
+export const updatePayment = (id, updatedData) => paymentsService.updateById(id, updatedData)
+
+export const deletePayment = (id) => paymentsService.deleteById(id)

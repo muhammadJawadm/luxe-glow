@@ -1,47 +1,13 @@
-import { supabase } from "../lib/supabase";
+import { createBaseService } from "./baseService";
 
-export const fetchProducts = async () => {
-  const { data, error } = await supabase
-    .from("products")
-    .select("*, product_images(*), brands(*), categories(*), reviews(*)");
+const productsService = createBaseService('products');
 
-  if (error) return [];
-  return data;
-};
+export const fetchProducts = (page, limit) => productsService.getAll({ select: "*, product_images(*), brands(*), categories(*), reviews(*)", page, limit });
 
-export const fetchProductById = async (productId) => {
-  const { data, error } = await supabase
-    .from("products")
-    .select("*, product_images(*), brands(*), categories(*) , reviews(*)")
-    .eq("id", productId)
-    .single();
+export const fetchProductById = (productId) => productsService.getById(productId, "*, product_images(*), brands(*), categories(*) , reviews(*)")
 
-  if (error) return null;
-  return data;
-};
+export const createProduct = (productData) => productsService.create(productData);
 
-export const createProduct = async (productData) => {
-  const { data, error } = await supabase.from("products").insert(productData);
-  if (error) return null;
-  return data;
-};
+export const updateProduct = (productId, updatedData) => productsService.updateById(productId, updatedData);
 
-export const updateProduct = async (productId, updatedData) => {
-  const { data, error } = await supabase
-    .from("products")
-    .update(updatedData)
-    .eq("id", productId);
-
-  if (error) return null;
-  return data;
-};
-
-export const deleteProduct = async (productId) => {
-  const { data, error } = await supabase
-    .from("products")
-    .delete()
-    .eq("id", productId);
-
-  if (error) return null;
-  return data;
-};
+export const deleteProduct = (productId) => productsService.deleteById(productId);

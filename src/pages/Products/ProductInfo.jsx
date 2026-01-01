@@ -22,7 +22,7 @@ const ProductInfo = ({
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Price
         </label>
-        <p className="text-2xl font-bold text-gray-900">MVR {price.toFixed(2)}</p>
+        <p className="text-2xl font-bold text-gray-900">MVR {price}</p>
       </div>
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -63,7 +63,7 @@ const ProductInfo = ({
             </span>
           ))}
           <span className="ml-2 text-gray-600">
-            {rating} ({reviews.length} reviews)
+            {rating} ({reviews?.length || 0} reviews)
           </span>
         </div>
       </div>

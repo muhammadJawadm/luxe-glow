@@ -1,33 +1,22 @@
-import { supabase } from '../lib/supabase';
+import { createBaseService } from './baseService';
 
-/**
- * Fetch all discounts with product details
- */
-export const fetchDiscounts = async () => {
+const discountService = createBaseService('discounts')
+
+export const fetchDiscounts = () => {
     try {
-        const { data, error } = await supabase
-            .from('discounts')
-            .select(`
-        *,
-        products (*)
-      `)
-            .order('created_at', { ascending: false });
+        const data = discountService.getAll({
+            select: `*,products (*)`,
+            orderBy: 'created_at',
+            ascending: false
+        });
 
-        if (error) {
-            console.error('Error fetching discounts:', error);
-            return [];
-        }
-
-        return data || [];
+        return data;
     } catch (error) {
         console.error('Error in fetchDiscounts:', error);
         return [];
     }
 };
 
-/**
- * Create a new discount for a product
- */
 export const createDiscount = async (productId, discountPercentage, endDate = null) => {
     try {
         const discountData = {
@@ -37,125 +26,41 @@ export const createDiscount = async (productId, discountPercentage, endDate = nu
             end_date: endDate,
             is_active: true
         };
-
-        const { data, error } = await supabase
-            .from('discounts')
-            .insert([discountData])
-            .select()
-            .single();
-
-        if (error) {
-            console.error('Error creating discount:', error);
-            return { success: false, error: error.message };
-        }
-
+        const data = await discountService.create(discountData)
         return { success: true, data };
     } catch (error) {
         console.error('Error in createDiscount:', error);
-        return { success: false, error: error.message };
+        return { success: false, error };
     }
 };
 
-/**
- * Update an existing discount
- */
 export const updateDiscount = async (id, discountPercentage, endDate = null) => {
     try {
-        const { data, error } = await supabase
-            .from('discounts')
-            .update({
-                discount_percentage: discountPercentage,
-                end_date: endDate
-            })
-            .eq('id', id)
-            .select()
-            .single();
-
-        if (error) {
-            console.error('Error updating discount:', error);
-            return { success: false, error: error.message };
-        }
+        const data = await discountService.updateById(id, {
+            discount_percentage: discountPercentage,
+            end_date: endDate,
+            is_active: true
+        });
 
         return { success: true, data };
     } catch (error) {
-        console.error('Error in updateDiscount:', error);
-        return { success: false, error: error.message };
+        return { success: false, error };
     }
 };
 
-/**
- * Delete a discount
- */
 export const deleteDiscount = async (id) => {
     try {
-        const { error } = await supabase
-            .from('discounts')
-            .delete()
-            .eq('id', id);
-
+        const error = await discountService.deleteById(id);
         if (error) {
             console.error('Error deleting discount:', error);
-            return { success: false, error: error.message };
+            return error;
         }
-
         return { success: true };
     } catch (error) {
-        console.error('Error in deleteDiscount:', error);
-        return { success: false, error: error.message };
+        return { success: false, error };
     }
 };
 
-/**
- * Toggle discount active status
- */
-export const toggleDiscountStatus = async (id, isActive) => {
-    try {
-        const { data, error } = await supabase
-            .from('discounts')
-            .update({ is_active: isActive })
-            .eq('id', id)
-            .select()
-            .single();
-
-        if (error) {
-            console.error('Error toggling discount status:', error);
-            return { success: false, error: error.message };
-        }
-
-        return { success: true, data };
-    } catch (error) {
-        console.error('Error in toggleDiscountStatus:', error);
-        return { success: false, error: error.message };
-    }
-};
-
-/**
- * Get discount for a specific product
- */
-export const getProductDiscount = async (productId) => {
-    try {
-        const { data, error } = await supabase
-            .from('discounts')
-            .select('*')
-            .eq('product_id', productId)
-            .eq('is_active', true)
-            .single();
-
-        if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
-            console.error('Error fetching product discount:', error);
-            return null;
-        }
-
-        return data;
-    } catch (error) {
-        console.error('Error in getProductDiscount:', error);
-        return null;
-    }
-};
-
-/**
- * Calculate discounted price
- */
 export const calculateDiscountedPrice = (originalPrice, discountPercentage) => {
     if (!discountPercentage || discountPercentage <= 0) return originalPrice;
 

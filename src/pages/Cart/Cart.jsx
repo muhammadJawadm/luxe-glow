@@ -1,24 +1,30 @@
 import React, { useEffect, useState } from "react";
-import { fetchAllCarts, deleteCartItem, getCartStatistics } from "../../services/cartService";
+import { fetchAllCarts, deleteCartItem, getCartStatistics, fetchCartById } from "../../services/cartService";
 import Header from "../../layouts/partials/header";
-import { FiSearch, FiTrash2, FiShoppingCart } from "react-icons/fi";
+import { FiSearch, FiTrash2, FiShoppingCart, FiEye, FiX } from "react-icons/fi";
 import { BsCart3 } from "react-icons/bs";
+import Pagination from "../../components/Pagination";
 
 const Cart = () => {
     const [carts, setCarts] = useState([]);
     const [filteredCarts, setFilteredCarts] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [isLoading, setIsLoading] = useState(true);
+    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+    const [selectedCart, setSelectedCart] = useState(null);
     const [statistics, setStatistics] = useState({
         totalItems: 0,
         totalProducts: 0,
         estimatedValue: 0
     });
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(10);
+    const [totalItems, setTotalItems] = useState(0);
 
     useEffect(() => {
         loadCarts();
         loadStatistics();
-    }, []);
+    }, [currentPage]);
 
     useEffect(() => {
         filterCarts();
@@ -26,10 +32,11 @@ const Cart = () => {
 
     const loadCarts = async () => {
         setIsLoading(true);
-        const data = await fetchAllCarts();
+        const data = await fetchAllCarts(currentPage, itemsPerPage);
         console.log("Cart Data is ", data);
-        setCarts(data);
-        setFilteredCarts(data);
+        setCarts(data.data || []);
+        setFilteredCarts(data.data || []);
+        setTotalItems(data.count || 0);
         setIsLoading(false);
     };
 
@@ -57,12 +64,26 @@ const Cart = () => {
 
     const handleDeleteCart = async (cartId) => {
         if (window.confirm("Are you sure you want to delete this cart item?")) {
-            const result = await deleteCartItem(cartId);
-            if (result.success) {
-                loadCarts();
-                loadStatistics();
+            try {
+                await deleteCartItem(cartId);
+                await loadCarts();
+                await loadStatistics();
+            } catch (error) {
+                console.error("Error deleting cart item:", error);
+                alert("Failed to delete cart item. Please try again.");
             }
         }
+    };
+
+    const handleViewCart = async (cartId) => {
+        const cartData = await fetchCartById(cartId);
+        setSelectedCart(cartData);
+        setIsViewModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsViewModalOpen(false);
+        setSelectedCart(null);
     };
 
     const formatPrice = (price) => {
@@ -83,7 +104,7 @@ const Cart = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen">
             <Header header="Cart Management" link="/cart" />
 
             <div className="px-4 sm:px-8 py-6">
@@ -156,30 +177,30 @@ const Cart = () => {
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
+                                <thead className="bg-gradient-to-r from-primary to-primary/80 text-white">
                                     <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                                             User
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                                             Product
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                                             Category
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                                             Price
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                                             Quantity
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                                             Total
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                                             Added On
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                                             Actions
                                         </th>
                                     </tr>
@@ -190,10 +211,10 @@ const Cart = () => {
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex items-center">
                                                     <div className="flex-shrink-0 h-10 w-10">
-                                                        {cart.users?.avatar ? (
+                                                        {cart.users?.profile ? (
                                                             <img
                                                                 className="h-10 w-10 rounded-full object-cover"
-                                                                src={cart.users.avatar}
+                                                                src={cart.users.profile}
                                                                 alt={cart.users.name}
                                                             />
                                                         ) : (
@@ -217,10 +238,10 @@ const Cart = () => {
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center">
                                                     <div className="flex-shrink-0 h-16 w-16">
-                                                        {cart.products?.image ? (
+                                                        {cart.products?.product_images?.[0]?.image_url ? (
                                                             <img
                                                                 className="h-16 w-16 rounded object-cover"
-                                                                src={cart.products.image}
+                                                                src={cart.products.product_images?.[0]?.image_url}
                                                                 alt={cart.products.name}
                                                             />
                                                         ) : (
@@ -259,13 +280,22 @@ const Cart = () => {
                                                 {formatDate(cart.created_at)}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <button
-                                                    onClick={() => handleDeleteCart(cart.id)}
-                                                    className="text-red-600 hover:text-red-900 transition-colors"
-                                                    title="Delete cart item"
-                                                >
-                                                    <FiTrash2 className="text-lg" />
-                                                </button>
+                                                <div className="flex space-x-2">
+                                                    <button
+                                                        onClick={() => handleViewCart(cart.id)}
+                                                        className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors cursor-pointer"
+                                                        title="View cart details"
+                                                    >
+                                                        <FiEye className="text-lg" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteCart(cart.id)}
+                                                        className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
+                                                        title="Delete cart item"
+                                                    >
+                                                        <FiTrash2 className="text-lg" />
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
@@ -282,6 +312,160 @@ const Cart = () => {
                     </div>
                 )}
             </div>
+
+            {/* View Cart Details Modal */}
+            {isViewModalOpen && selectedCart && (
+                <div className="fixed z-10 inset-0 overflow-y-auto">
+                    <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                        <div
+                            className="fixed inset-0 transition-opacity bg-gray-900/50 backdrop-blur-sm"
+                            onClick={handleCloseModal}
+                        ></div>
+
+                        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+                            <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="text-xl leading-6 font-bold text-gray-900">
+                                        Cart Details
+                                    </h3>
+                                    <button
+                                        type="button"
+                                        onClick={handleCloseModal}
+                                        className="text-gray-400 hover:text-gray-500 transition-colors"
+                                    >
+                                        <FiX className="text-2xl" />
+                                    </button>
+                                </div>
+
+                                <div className="space-y-6">
+                                    {/* User Information */}
+                                    <div className="bg-gray-50 rounded-lg p-4">
+                                        <h4 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">Customer Information</h4>
+                                        <div className="flex items-center space-x-4">
+                                            {selectedCart.users?.profile ? (
+                                                <img
+                                                    src={selectedCart.users.profile}
+                                                    alt={selectedCart.users.name}
+                                                    className="h-16 w-16 rounded-full object-cover ring-2 ring-gray-200"
+                                                />
+                                            ) : (
+                                                <div className="h-16 w-16 rounded-full bg-gray-300 flex items-center justify-center">
+                                                    <span className="text-gray-600 text-xl font-bold">
+                                                        {selectedCart.users?.name?.charAt(0) || selectedCart.users?.email?.charAt(0) || "?"}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            <div className="flex-1">
+                                                <p className="text-lg font-semibold text-gray-900">
+                                                    {selectedCart.users?.name || "Unknown User"}
+                                                </p>
+                                                <p className="text-sm text-gray-600">
+                                                    {selectedCart.users?.email || "No email"}
+                                                </p>
+                                                {selectedCart.users?.phone && (
+                                                    <p className="text-sm text-gray-600">
+                                                        {selectedCart.users.phone}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Product Information */}
+                                    <div className="bg-gray-50 rounded-lg p-4">
+                                        <h4 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">Product Information</h4>
+                                        <div className="flex space-x-4">
+                                            {selectedCart.products?.product_images?.[0]?.image_url ? (
+                                                <img
+                                                    src={selectedCart.products.product_images[0].image_url}
+                                                    alt={selectedCart.products.name}
+                                                    className="h-24 w-24 rounded-lg object-cover ring-2 ring-gray-200"
+                                                />
+                                            ) : (
+                                                <div className="h-24 w-24 rounded-lg bg-gray-300 flex items-center justify-center">
+                                                    <FiShoppingCart className="text-gray-500 text-3xl" />
+                                                </div>
+                                            )}
+                                            <div className="flex-1">
+                                                <p className="text-lg font-semibold text-gray-900">
+                                                    {selectedCart.products?.name || "Unknown Product"}
+                                                </p>
+                                                <p className="text-sm text-gray-600 mt-1">
+                                                    Category: <span className="font-medium">{selectedCart.products?.categories?.name || "Uncategorized"}</span>
+                                                </p>
+                                                {selectedCart.products?.description && (
+                                                    <p className="text-sm text-gray-600 mt-2 line-clamp-2">
+                                                        {selectedCart.products.description}
+                                                    </p>
+                                                )}
+                                                <p className="text-sm text-gray-600 mt-1">
+                                                    Stock Available: <span className="font-medium">{selectedCart.products?.stock || 0}</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Pricing Details */}
+                                    <div className="bg-gray-50 rounded-lg p-4">
+                                        <h4 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">Pricing Details</h4>
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-gray-600">Unit Price:</span>
+                                                <span className="font-semibold text-gray-900">{formatPrice(selectedCart.products?.price || 0)}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-gray-600">Quantity:</span>
+                                                <span className="font-semibold text-gray-900">{selectedCart.quantity}</span>
+                                            </div>
+                                            <div className="border-t border-gray-300 pt-2 mt-2">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-lg font-bold text-gray-900">Total:</span>
+                                                    <span className="text-lg font-bold text-primary">
+                                                        {formatPrice((selectedCart.products?.price || 0) * selectedCart.quantity)}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Additional Information */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <p className="text-xs text-gray-500 uppercase tracking-wide">Added On</p>
+                                            <p className="text-sm font-medium text-gray-900 mt-1">
+                                                {formatDate(selectedCart.created_at)}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-gray-500 uppercase tracking-wide">Cart ID</p>
+                                            <p className="text-sm font-medium text-gray-900 mt-1">
+                                                #{selectedCart.id}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                                <button
+                                    type="button"
+                                    onClick={handleCloseModal}
+                                    className="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:w-auto sm:text-sm transition-colors"
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <Pagination
+                currentPage={currentPage}
+                totalItems={totalItems}
+                itemsPerPage={itemsPerPage}
+                onPageChange={(page) => setCurrentPage(page)}
+            />
         </div>
     );
 };

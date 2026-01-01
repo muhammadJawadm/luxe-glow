@@ -9,6 +9,7 @@ import {
     updateOrderedProduct,
     deleteOrderedProduct,
 } from "../../services/orderedProductsServices";
+import Pagination from "../../components/Pagination";
 
 const OrderedProducts = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -19,18 +20,22 @@ const OrderedProducts = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [loading, setLoading] = useState(true);
     const [orderedProductToDelete, setOrderedProductToDelete] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(10);
+    const [totalItems, setTotalItems] = useState(0);
 
     useEffect(() => {
         fetchOrderedProductsData();
-    }, []);
+    }, [currentPage]);
 
     const fetchOrderedProductsData = async () => {
         try {
             setLoading(true);
-            const response = await fetchOrderedProducts();
+            const response = await fetchOrderedProducts(currentPage, itemsPerPage);
             console.log("Fetched ordered products:", response);
-            setOrderedProductsData(response || []);
-            setFilteredOrderedProducts(response || []);
+            setOrderedProductsData(response.data || []);
+            setFilteredOrderedProducts(response.data || []);
+            setTotalItems(response.count || 0);
             console.log("Fetched ordered products:", response);
         } catch (error) {
             console.error("Error fetching ordered products data:", error);
@@ -170,22 +175,16 @@ const OrderedProducts = () => {
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gradient-to-r from-primary to-primary/80 text-white">
                                         <tr>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
+                                            <th className="px-6 py-4 text-left text-xs font-semibold uppercase">
                                                 Order ID
                                             </th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
+                                            <th className="px-2 py-4 text-left text-xs font-semibold uppercase">
                                                 Product
                                             </th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
-                                                Category
-                                            </th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
-                                                Price
-                                            </th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
+                                            <th className="px-2 py-4 text-left text-xs font-semibold uppercase">
                                                 Quantity
                                             </th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
+                                            <th className="px-2 py-4 text-left text-xs font-semibold uppercase tracking-wider">
                                                 Subtotal
                                             </th>
                                             <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
@@ -216,27 +215,17 @@ const OrderedProducts = () => {
                                                         </span>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="text-sm font-medium text-gray-900">
+                                                <td className="px-2 py-4">
+                                                    <div className="text-sm font-medium text-gray-900 w-40">
                                                         {item.products?.name || "N/A"}
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                                        {item.products?.categories?.name || "N/A"}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm font-semibold text-gray-900">
-                                                        MVR {item.products?.price || 0}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                <td className="px-2 py-4 whitespace-nowrap">
                                                     <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary font-bold">
                                                         {item.quantity}
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                <td className="px-2 py-4 whitespace-nowrap">
                                                     <div className="text-sm font-bold text-primary">
                                                         MVR {((item.products?.price || 0) * item.quantity).toFixed(2)}
                                                     </div>
@@ -261,7 +250,7 @@ const OrderedProducts = () => {
                                                         {item.orders?.status || "N/A"}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                <td className="px-4 py-4 whitespace-nowrap">
                                                     <div className="flex items-center gap-2 text-sm text-gray-500">
                                                         <FiCalendar className="text-gray-400" />
                                                         {formatDate(item.created_at)}
@@ -271,14 +260,14 @@ const OrderedProducts = () => {
                                                     <div className="flex items-center justify-center gap-2">
                                                         <button
                                                             onClick={() => handleEditClick(item)}
-                                                            className="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors"
+                                                            className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
                                                             title="Edit"
                                                         >
                                                             <FiEdit className="text-lg" />
                                                         </button>
                                                         <button
                                                             onClick={() => handleDeleteClick(item)}
-                                                            className="p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+                                                            className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
                                                             title="Delete"
                                                         >
                                                             <FiTrash2 className="text-lg" />
@@ -315,6 +304,13 @@ const OrderedProducts = () => {
                 }}
                 onDelete={handleDeleteConfirm}
                 entityType={"Ordered Product"}
+            />
+
+            <Pagination
+                currentPage={currentPage}
+                totalItems={totalItems}
+                itemsPerPage={itemsPerPage}
+                onPageChange={(page) => setCurrentPage(page)}
             />
         </div>
     );

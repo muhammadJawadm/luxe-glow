@@ -1,32 +1,15 @@
 import { supabase } from "../lib/supabase";
 
+import { createBaseService } from "./baseService";
 
-export const fetchOrders = async () => {
-    const { data, error } = await supabase.from('orders').select('*, users(*), payments(*)');
-    if (error) {
-        console.error('Error fetching orders:', error);
-    }
-    return data;
-}
+const ordersService = createBaseService('orders');
 
-export const fetchOrderById = async (orderId) => {
-    const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('id', orderId);
-    if (error) {
-        console.error('Error fetching order by ID:', error);
-        return null;
-    }
-    return data;
+export const fetchOrders = (page, limit) => ordersService.getAll({ select: "*, users(*), payments(*)", page, limit });
 
-}
+export const fetchOrderById = (orderId) => ordersService.getById(orderId, "*, users(*), payments(*)")
 
-export const deleteOrder = async (orderId) => {
-    const { data, error } = await supabase.from('orders').delete().eq('id', orderId);
-    if (error) {
-        console.error('Error deleting order:', error);
-        return null;
-    }
-    return data;
-}
+export const deleteOrder = (orderId) => ordersService.deleteById(orderId)
+
+export const updateOrder = (orderId, updatedData) => ordersService.updateById(orderId, updatedData)
+
+export const createOrder = (orderData) => ordersService.create(orderData)

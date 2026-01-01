@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
 import Header from "../../layouts/partials/header";
-import { FiEdit2, FiPlus, FiTrash2 } from "react-icons/fi";
+import { FiEdit, FiPlus, FiTrash2 } from "react-icons/fi";
 import DeleteModal from "../../components/Modals/DeleteModal";
 import {
   fetchDiscounts,
   deleteDiscount,
-  toggleDiscountStatus,
   createDiscount,
   updateDiscount,
   calculateDiscountedPrice
@@ -80,15 +79,6 @@ const Settings = () => {
     }
   };
 
-  const handleToggleStatus = async (discountId, currentStatus) => {
-    const result = await toggleDiscountStatus(discountId, !currentStatus);
-    if (result.success) {
-      await loadData();
-    } else {
-      alert("Failed to toggle status: " + result.error);
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -135,6 +125,12 @@ const Settings = () => {
     if (!endDate) return false;
     return new Date(endDate) < new Date();
   };
+  const getDiscountStatus = (endDate) => {
+    if (!endDate) return 'active'; // No expiry means always active
+    const currentDate = new Date();
+    const expiryDate = new Date(endDate);
+    return currentDate < expiryDate ? 'active' : 'inactive';
+  };
 
   // Get products that don't have active discounts
   const availableProducts = products.filter(product =>
@@ -172,27 +168,27 @@ const Settings = () => {
               </div>
             ) : (
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+                <thead className="bg-gradient-to-r from-primary to-primary/80 text-white">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                       Product
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                       Original Price
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                       Discount
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                       Discounted Price
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                       Expires
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -245,27 +241,26 @@ const Settings = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
-                          onClick={() => handleToggleStatus(discount.id, discount.is_active)}
-                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full cursor-pointer ${discount.is_active
+                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getDiscountStatus(discount.end_date) === 'active'
                             ? "bg-green-100 text-green-800"
                             : "bg-gray-100 text-gray-800"
                             }`}
                         >
-                          {discount.is_active ? "Active" : "Inactive"}
+                          {getDiscountStatus(discount.end_date) === 'active' ? "Active" : "Inactive"}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button
                           onClick={() => handleEditDiscount(discount)}
-                          className="text-indigo-600 hover:text-indigo-900 mr-4 cursor-pointer"
+                          className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
                         >
-                          <FiEdit2 />
+                          <FiEdit className="text-lg" />
                         </button>
                         <button
                           onClick={() => handleDeleteDiscount(discount)}
-                          className="text-red-600 hover:text-red-900 cursor-pointer"
+                          className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
                         >
-                          <FiTrash2 />
+                          <FiTrash2 className="text-lg" />
                         </button>
                       </td>
                     </tr>
@@ -282,7 +277,7 @@ const Settings = () => {
         <div className="fixed z-10 inset-0 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             <div
-              className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
+              className="fixed inset-0 transition-opacity bg-gray-900/50 backdrop-blur-sm"
               onClick={() => setIsModalOpen(false)}
             ></div>
 

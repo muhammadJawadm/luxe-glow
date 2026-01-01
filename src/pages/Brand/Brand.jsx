@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import DeleteModal from "../../components/Modals/DeleteModal";
 import Header from "../../layouts/partials/header";
-import { FiEdit2, FiSearch, FiTrash2, FiPackage } from "react-icons/fi";
+import { FiEdit, FiSearch, FiTrash2, FiPlus } from "react-icons/fi";
 import BrandModal from "../../components/Modals/BrandModal";
 import { fetchBrands, deleteBrand } from "../../services/brandsServices";
+import Pagination from "../../components/Pagination";
 
 const Brand = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -14,10 +15,13 @@ const Brand = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [brandToDelete, setBrandToDelete] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
 
   useEffect(() => {
     fetchBrandsData();
-  }, []);
+  }, [currentPage]);
 
   // Search functionality
   useEffect(() => {
@@ -34,9 +38,10 @@ const Brand = () => {
   const fetchBrandsData = async () => {
     try {
       setLoading(true);
-      const response = await fetchBrands();
-      setBrandData(response || []);
-      setFilteredBrands(response || []);
+      const response = await fetchBrands(currentPage, itemsPerPage);
+      setBrandData(response.data || []);
+      setFilteredBrands(response.data || []);
+      setTotalItems(response.count || 0);
       console.log("Brands Data:", response);
     } catch (error) {
       console.error("Error fetching brands:", error);
@@ -115,9 +120,9 @@ const Brand = () => {
           </div>
           <button
             onClick={handleAddNewBrand}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 cursor-pointer text-white font-medium rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary/80 text-white font-medium rounded-lg shadow-sm transition-colors duration-200"
           >
-            <FiPackage className="text-lg" />
+            <FiPlus className="text-lg" />
             Add Brand
           </button>
         </div>
@@ -145,11 +150,11 @@ const Brand = () => {
           ) : (
             <div className="relative overflow-x-auto bg-white sm:rounded-lg border-b border-gray-200 shadow-sm">
               <table className="w-full text-left rounded-xl overflow-hidden border border-gray-100">
-                <thead className="bg-gradient-to-r from-gray-50 to-gray-100/70 text-gray-700">
+                <thead className="bg-gradient-to-r from-primary to-primary/80 text-white">
                   <tr>
-                    <th className="px-6 py-4 font-semibold text-sm">Brand Name</th>
-                    <th className="px-6 py-4 font-semibold text-sm">Created At</th>
-                    <th className="px-6 py-4 font-semibold text-sm text-center">Actions</th>
+                    <th className="px-6 py-3.5 font-medium">Brand Name</th>
+                    <th className="px-6 py-3.5 font-medium">Created At</th>
+                    <th className="px-6 py-3.5 font-medium text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200/50">
@@ -171,18 +176,18 @@ const Brand = () => {
                       <td className="px-6 py-4">
                         <div className="flex justify-center space-x-2">
                           <button
-                            className="p-2 text-gray-500 cursor-pointer hover:text-green-600 hover:bg-green-50 rounded-md transition-colors"
+                            className="p-2 text-gray-500 cursor-pointer hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
                             onClick={() => handleEditClick(item)}
                             title="Edit Brand"
                           >
-                            <FiEdit2 />
+                            <FiEdit className="text-lg" />
                           </button>
                           <button
                             onClick={() => handleDeleteClick(item)}
                             className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
                             title="Delete Brand"
                           >
-                            <FiTrash2 />
+                            <FiTrash2 className="text-lg" />
                           </button>
                         </div>
                       </td>
@@ -213,6 +218,13 @@ const Brand = () => {
         }}
         onDelete={handleDeleteConfirm}
         entityType={"Brand"}
+      />
+
+      <Pagination
+        currentPage={currentPage}
+        totalItems={totalItems}
+        itemsPerPage={itemsPerPage}
+        onPageChange={(page) => setCurrentPage(page)}
       />
     </div>
   );

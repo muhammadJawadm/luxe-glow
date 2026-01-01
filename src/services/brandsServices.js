@@ -1,74 +1,19 @@
-import { supabase } from "../lib/supabase";
+import { createBaseService } from "./baseService";
+
+const brandsService = createBaseService('brands');
 
 // Fetch all brands
-export const fetchBrands = async () => {
-    const { data, error } = await supabase
-        .from("brands")
-        .select("*")
-        .order("created_at", { ascending: false });
 
-    if (error) {
-        console.error('Error fetching brands:', error);
-        throw error;
-    }
-    return data;
-};
+export const fetchBrands = (page, limit) => brandsService.getAll({ select: "*", page, limit });
 
 // Fetch brand by ID
-export const fetchBrandById = async (id) => {
-    const { data, error } = await supabase
-        .from("brands")
-        .select("*")
-        .eq("id", id)
-        .single();
-
-    if (error) {
-        console.error('Error fetching brand by ID:', error);
-        throw error;
-    }
-    return data;
-};
+export const fetchBrandById = (id) => brandsService.getById(id, "*");
 
 // Create new brand
-export const createBrand = async (brandData) => {
-    const { data, error } = await supabase
-        .from("brands")
-        .insert([brandData])
-        .select();
-
-    if (error) {
-        console.error('Error creating brand:', error);
-        throw error;
-    }
-    return data;
-};
+export const createBrand = (brandData) => brandsService.create(brandData);
 
 // Update brand
-export const updateBrand = async (id, updatedData) => {
-    const { data, error } = await supabase
-        .from("brands")
-        .update(updatedData)
-        .eq("id", id)
-        .select();
-
-    if (error) {
-        console.error('Error updating brand:', error);
-        throw error;
-    }
-    return data;
-};
+export const updateBrand = (id, updatedData) => brandsService.updateById(id, updatedData);
 
 // Delete brand
-export const deleteBrand = async (id) => {
-    const { data, error } = await supabase
-        .from("brands")
-        .delete()
-        .eq("id", id)
-        .select();
-
-    if (error) {
-        console.error('Error deleting brand:', error);
-        throw error;
-    }
-    return data;
-};
+export const deleteBrand = (id) => brandsService.deleteById(id);

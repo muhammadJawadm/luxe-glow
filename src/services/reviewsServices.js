@@ -1,37 +1,12 @@
-import { supabase } from "../lib/supabase";
+import { createBaseService } from "./baseService";
 
-export const fetchReviews = async()=>{
-    const {data, error } = await supabase.from('reviews').select('*');
-    if (error) {
-        console.error('Error fetching reviews :', error);
-        return null;
-    }
-    return data;
-}
+const reviewsService = createBaseService('reviews');
 
-export const fetchReviewById = async(reviewId)=>{
-    const {data, error } = await supabase.from('reviews').select('*').eq('id', reviewId);    
-    if (error) {
-        console.error('Error fetching review by ID:', error);
-        return null;
-    }
-    return data;    
-    }
+export const fetchReviews = () => reviewsService.getAll()
 
-export const updateReview = async(reviewId, updatedData)=>{
-    const {data, error } = await supabase.from('reviews').update(updatedData).eq('id', reviewId);    
-    if (error) {
-        console.error('Error updating review:', error);
-        return null;
-    }
-    return data;    
-    }
+export const fetchReviewById = (id) => reviewsService.getById(id)
 
-export const deleteReview = async(reviewId)=>{
-const {data, error} = await supabase.from('reviews').delete().eq('id', reviewId);
-if (error) {
-    console.error('Error deleting review:', error);
-    return null;
-}
-return data;
-}
+export const updateReview = (id, updatedData) => reviewsService.updateById(id, updatedData)
+
+export const deleteReview = (id) => reviewsService.deleteById(id)
+
