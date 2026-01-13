@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import DeleteModal from "../../components/Modals/DeleteModal";
+import ProductModal from "../../components/Modals/ProductModal";
 import Header from "../../layouts/partials/header";
-import { FiEye, FiSearch, FiTrash2, FiEdit2 } from "react-icons/fi";
+import { FiEye, FiSearch, FiTrash2, FiEdit2, FiPlus } from "react-icons/fi";
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";
 import { Link } from "react-router-dom";
 import { fetchProducts, deleteProduct } from "../../services/productServices";
@@ -11,6 +12,8 @@ import Pagination from "../../components/Pagination";
 const Products = () => {
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const [productData, setProductData] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -84,6 +87,33 @@ const Products = () => {
     }
   };
 
+  const handleAddProduct = () => {
+    setSelectedProduct(null);
+    setIsProductModalOpen(true);
+  };
+
+  const handleEditProduct = (product) => {
+    setSelectedProduct(product);
+    setIsProductModalOpen(true);
+  };
+
+  const handleCloseProductModal = () => {
+    setIsProductModalOpen(false);
+    setSelectedProduct(null);
+  };
+
+  const handleSaveProduct = async () => {
+    // Refresh products list after save
+    try {
+      const response = await fetchProducts(currentPage, itemsPerPage);
+      setProductData(response.data || []);
+      setFilteredProducts(response.data || []);
+      setTotalItems(response.count || 0);
+    } catch (error) {
+      console.error("Error refreshing products:", error);
+    }
+  };
+
 
   function formatTime(timestamp) {
     const date = new Date(timestamp); // parse the timestamp
@@ -117,6 +147,13 @@ const Products = () => {
             />
           </div>
 
+          <button
+            onClick={handleAddProduct}
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary/80 text-white font-medium rounded-lg shadow-sm transition-colors duration-200"
+          >
+            <FiPlus className="text-lg" />
+            Add Product
+          </button>
         </div>
 
         {/* Low Stock Alert */}
@@ -245,6 +282,13 @@ const Products = () => {
                             <FiEye className="text-lg" />
                           </Link>
                           <button
+                            onClick={() => handleEditProduct(item)}
+                            className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors cursor-pointer"
+                            title="Edit Product"
+                          >
+                            <FiEdit2 className="text-lg" />
+                          </button>
+                          <button
                             onClick={() => handleDeleteClick(item)}
                             className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
                             title="Delete Product"
@@ -261,6 +305,13 @@ const Products = () => {
           </div>
         </div>
       </div>
+
+      <ProductModal
+        isOpen={isProductModalOpen}
+        onClose={handleCloseProductModal}
+        product={selectedProduct}
+        onSave={handleSaveProduct}
+      />
 
       <DeleteModal
         isOpen={isDeleteModalOpen}

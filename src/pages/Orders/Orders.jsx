@@ -7,6 +7,7 @@ const Orders = () => {
   const [ordersData, setOrdersData] = React.useState([]);
   const [isViewModalOpen, setIsViewModalOpen] = React.useState(false);
   const [selectedOrder, setSelectedOrder] = React.useState(null);
+  const [searchQuery, setSearchQuery] = React.useState("");
   const [currentPage, setCurrentPage] = React.useState(1);
   const [itemsPerPage] = React.useState(10);
   const [totalItems, setTotalItems] = React.useState(0);
@@ -48,6 +49,13 @@ const Orders = () => {
     setIsViewModalOpen(false);
     setSelectedOrder(null);
   };
+
+  // Filter orders based on search query
+  const filteredOrders = ordersData.filter((order) =>
+    order.users?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    order.id?.toString().includes(searchQuery) ||
+    order.status?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
   return (
     <div>
       <Header header={"Manage Orders"} />
@@ -59,6 +67,8 @@ const Orders = () => {
             </div>
             <input
               type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg bg-white "
               placeholder="Search orders..."
             />
@@ -80,44 +90,52 @@ const Orders = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200/60">
-                {ordersData.map((order) => (
-                  <tr
-                    key={order.id}
-                    className="bg-white hover:bg-gray-50 transition-colors duration-150 ease-in-out"
-                  >
-                    <td className="px-6 py-3">{order.id}</td>
-                    <td className="px-6 py-3"><h3 className="font-semibold">{order.users.name}</h3></td>
-                    <td className="px-6 py-3">{formatTime(order.created_at)}</td>
-                    <td className="px-6 py-3">{order.payments.amount}</td>
-                    <td className="px-6 py-3">{order.deliver_time}</td>
-                    {/* <td className="px-6 py-3">{order.status}</td> */}
-                    <td className="px-6 py-3">{order.is_placed ? "Yes" : "No"}</td>
-
-                    <td className="px-6 py-3">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${order.status === "completed"
-                          ? "bg-green-100 text-green-800"
-                          : order.status === "active"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-blue-100 text-blue-800"
-                          }`}
-                      >
-                        {order.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-3">
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => handleViewOrder(order.id)}
-                          className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-                          title="View Details"
-                        >
-                          <FiEye className="text-lg" />
-                        </button>
-                      </div>
+                {filteredOrders.length === 0 ? (
+                  <tr>
+                    <td colSpan="8" className="px-6 py-12 text-center text-gray-500">
+                      {searchQuery ? "No orders found matching your search." : "No orders available."}
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  filteredOrders.map((order) => (
+                    <tr
+                      key={order.id}
+                      className="bg-white hover:bg-gray-50 transition-colors duration-150 ease-in-out"
+                    >
+                      <td className="px-6 py-3">{order.id}</td>
+                      <td className="px-6 py-3"><h3 className="font-semibold">{order.users.name}</h3></td>
+                      <td className="px-6 py-3">{formatTime(order.created_at)}</td>
+                      <td className="px-6 py-3">{order.payments.amount}</td>
+                      <td className="px-6 py-3">{order.deliver_time}</td>
+                      {/* <td className="px-6 py-3">{order.status}</td> */}
+                      <td className="px-6 py-3">{order.is_placed ? "Yes" : "No"}</td>
+
+                      <td className="px-6 py-3">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${order.status === "completed"
+                            ? "bg-green-100 text-green-800"
+                            : order.status === "active"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-blue-100 text-blue-800"
+                            }`}
+                        >
+                          {order.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-3">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleViewOrder(order.id)}
+                            className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                            title="View Details"
+                          >
+                            <FiEye className="text-lg" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

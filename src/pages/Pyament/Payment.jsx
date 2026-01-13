@@ -7,6 +7,7 @@ const Payment = () => {
   const [paymentsData, setPaymentsData] = useState([]);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
@@ -48,6 +49,12 @@ const Payment = () => {
     setSelectedPayment(null);
   };
 
+  // Filter payments based on search query
+  const filteredPayments = paymentsData.filter((payment) =>
+    payment.users?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    payment.id?.toString().includes(searchQuery)
+  );
+
   return (
     <div>
       <Header header={"Manage Payments"} />
@@ -59,6 +66,8 @@ const Payment = () => {
             </div>
             <input
               type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg bg-white"
               placeholder="Search payments..."
             />
@@ -78,29 +87,37 @@ const Payment = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200/60">
-                {paymentsData.map((payment) => (
-                  <tr
-                    key={payment.id}
-                    className="bg-white hover:bg-gray-50 transition-colors duration-150 ease-in-out"
-                  >
-                    <td className="px-6 py-3">{payment.id}</td>
-                    <td className="px-6 py-3"><h3 className="text-sm font-bold">{payment.users.name}</h3></td>
-                    <td className="px-6 py-3">{formatTime(payment.paid_at)}</td>
-                    <td className="px-6 py-3 text-base text-red-500">{payment.discount ? `${payment.discount}%` : "0%"}</td>
-                    <td className="px-6 py-3 text-base text-green-500">{payment.amount}</td>
-                    <td className="px-6 py-3">
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => handleViewPayment(payment.id)}
-                          className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-                          title="View Details"
-                        >
-                          <FiEye className="text-lg" />
-                        </button>
-                      </div>
+                {filteredPayments.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
+                      {searchQuery ? "No payments found matching your search." : "No payments available."}
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  filteredPayments.map((payment) => (
+                    <tr
+                      key={payment.id}
+                      className="bg-white hover:bg-gray-50 transition-colors duration-150 ease-in-out"
+                    >
+                      <td className="px-6 py-3">{payment.id}</td>
+                      <td className="px-6 py-3"><h3 className="text-sm font-bold">{payment.users.name}</h3></td>
+                      <td className="px-6 py-3">{formatTime(payment.paid_at)}</td>
+                      <td className="px-6 py-3 text-base text-red-500">{payment.discount ? `${payment.discount}%` : "0%"}</td>
+                      <td className="px-6 py-3 text-base text-green-500">{payment.amount}</td>
+                      <td className="px-6 py-3">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleViewPayment(payment.id)}
+                            className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                            title="View Details"
+                          >
+                            <FiEye className="text-lg" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

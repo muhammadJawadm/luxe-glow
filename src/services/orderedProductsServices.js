@@ -20,12 +20,10 @@ export const fetchOrderedProductsByOrderId = async (orderId) => orderedProductsS
     ascending: false
 })
 
-export const createOrderedProduct = (orderedProductData) => orderedProductsService.create(orderedProductData, {
-    select: `*, products(id, name, price, categories(name)), orders(id, user_id, total_amount, status, users(name, email))`
-});
+export const createOrderedProduct = (orderedProductData) => orderedProductsService.create(orderedProductData,
+    `*, products(id, name, price, categories(name)), orders(id, user_id, total_amount, status, users(name, email))`
+);
 
-export const updateOrderedProduct = (orderedProductId, updatedData) => orderedProductsService.update(orderedProductId, updatedData, {
-    select: `*, products(id, name, price, categories(name)), orders(id, user_id, total_amount, status, users(name, email))`
-});
+export const updateOrderedProduct = (orderedProductId, updatedData) => orderedProductsService.updateById(orderedProductId, updatedData);
 
-export const deleteOrderedProduct = (orderedProductId) => orderedProductsService.delete(orderedProductId);
+export const deleteOrderedProduct = (orderedProductId) => orderedProductsService.deleteById(orderedProductId);

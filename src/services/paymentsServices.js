@@ -6,6 +6,8 @@ export const fetchPayments = (page, limit) => paymentsService.getAll({ select: "
 
 export const fetchPaymentById = (id) => paymentsService.getById(id, "*, users(*), orders(*)")
 
+export const createPayment = (paymentData) => paymentsService.create(paymentData);
+
 export const updatePayment = (id, updatedData) => paymentsService.updateById(id, updatedData)
 
 export const deletePayment = (id) => paymentsService.deleteById(id)

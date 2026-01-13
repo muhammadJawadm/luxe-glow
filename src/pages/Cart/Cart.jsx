@@ -323,7 +323,7 @@ const Cart = () => {
                         ></div>
 
                         <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
-                            <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                            <div className="bg-white px-4 pt-5 pb-4 mb-4 sm:p-6 sm:pb-4">
                                 <div className="flex justify-between items-center mb-4">
                                     <h3 className="text-xl leading-6 font-bold text-gray-900">
                                         Cart Details
@@ -446,15 +446,7 @@ const Cart = () => {
                                 </div>
                             </div>
 
-                            <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                                <button
-                                    type="button"
-                                    onClick={handleCloseModal}
-                                    className="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:w-auto sm:text-sm transition-colors"
-                                >
-                                    Close
-                                </button>
-                            </div>
+
                         </div>
                     </div>
                 </div>

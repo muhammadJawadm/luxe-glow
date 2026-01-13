@@ -11,6 +11,7 @@ const Categories = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [categoryData, setCategoryData] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
@@ -68,6 +69,11 @@ const Categories = () => {
     }
   }
 
+  // Filter categories based on search query
+  const filteredCategories = categoryData.filter((category) =>
+    category.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div>
       <Header header={"Manage Categories"} />
@@ -79,6 +85,8 @@ const Categories = () => {
             </div>
             <input
               type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg bg-white "
               placeholder="Search categories..."
             />
@@ -103,48 +111,56 @@ const Categories = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200/50">
-                {categoryData.map((item) => (
-                  <tr
-                    key={item.id}
-                    className="bg-white hover:bg-gray-50/80 transition-colors duration-100"
-                  >
-                    <td className="px-6 py-3">
-                      <div className="flex items-center space-x-4">
-                        <div>
-                          <h3 className="font-medium text-gray-800">
-                            {item.name}
-                          </h3>
-                        </div>
-                      </div>
-                    </td>
-
-                    <td className="px-6 py-3">
-                      <div className="flex items-center">
-                        <span className="text-gray-700">
-                          {item.created_at}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-3">
-                      <div className="flex space-x-2">
-                        <button
-                          className="p-2 text-gray-500 cursor-pointer hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-                          onClick={() => handleEditClick(item)}
-                          title="Edit Category"
-                        >
-                          <FiEdit className="text-lg" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteClick(item)}
-                          className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
-                          title="Delete Category"
-                        >
-                          <FiTrash2 className="text-lg" />
-                        </button>
-                      </div>
+                {filteredCategories.length === 0 ? (
+                  <tr>
+                    <td colSpan="3" className="px-6 py-12 text-center text-gray-500">
+                      {searchQuery ? "No categories found matching your search." : "No categories available."}
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  filteredCategories.map((item) => (
+                    <tr
+                      key={item.id}
+                      className="bg-white hover:bg-gray-50/80 transition-colors duration-100"
+                    >
+                      <td className="px-6 py-3">
+                        <div className="flex items-center space-x-4">
+                          <div>
+                            <h3 className="font-medium text-gray-800">
+                              {item.name}
+                            </h3>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="px-6 py-3">
+                        <div className="flex items-center">
+                          <span className="text-gray-700">
+                            {item.created_at}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-3">
+                        <div className="flex space-x-2">
+                          <button
+                            className="p-2 text-gray-500 cursor-pointer hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                            onClick={() => handleEditClick(item)}
+                            title="Edit Category"
+                          >
+                            <FiEdit className="text-lg" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteClick(item)}
+                            className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
+                            title="Delete Category"
+                          >
+                            <FiTrash2 className="text-lg" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

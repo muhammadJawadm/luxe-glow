@@ -177,7 +177,7 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed z-10 inset-0 overflow-y-auto">
+    <div className="fixed z-50 inset-0 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         {/* Blurred backdrop */}
         <div
@@ -189,69 +189,122 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
           ref={modalRef}
           className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
         >
-          <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+          <div className="bg-white px-6 pt-6 pb-4 sm:p-8 sm:pb-6">
             <h2 className="text-lg leading-6 font-medium text-gray-900 mb-4">
               {offer ? "Edit Offer" : "Add New Offer"}
             </h2>
 
-            <div className="space-y-4">
-              {/* Image Upload */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Offer Image
-                </label>
-                <label className="cursor-pointer block w-full">
+            <div className="space-y-6">
+              {/* Step 1: Image Upload */}
+              <div className="border-l-4 border-primary pl-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white font-bold text-sm">
+                    1
+                  </div>
+                  <h3 className="text-base font-semibold text-gray-900">Upload Offer Image</h3>
+                </div>
+                <p className="text-sm text-gray-600 mb-3 ml-10">
+                  Choose an attractive image for your offer. This will be displayed to customers.
+                </p>
+                <label className="cursor-pointer block w-full pr-10 ml-10">
                   <input
                     type="file"
                     className="hidden"
                     accept="image/*"
                     onChange={handleImageChange}
                   />
-                  <img
-                    src={imagePreview || "https://via.placeholder.com/400x300?text=Click+to+Upload"}
-                    alt="Offer"
-                    className="w-full h-48 object-cover border-2 border-dashed border-gray-300 rounded-lg hover:border-primary transition-colors"
+                  <div className="relative group">
+                    <img
+                      src={imagePreview || "https://via.placeholder.com/400x300?text=Click+to+Upload+Offer+Image"}
+                      alt="Offer"
+                      className="w-full h-48 object-cover border-2 border-dashed border-gray-300 rounded-lg hover:border-primary transition-colors group-hover:opacity-90"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
+                      <span className="text-white font-medium">Click to change image</span>
+                    </div>
+                  </div>
+                </label>
+                <p className="text-xs text-gray-500 mt-2 ml-10">Recommended size: 400x300px or similar ratio</p>
+              </div>
+
+              {/* Step 2: Product Selection */}
+              <div className="border-l-4 border-primary pl-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white font-bold text-sm">
+                    2
+                  </div>
+                  <h3 className="text-base font-semibold text-gray-900">Select Product</h3>
+                </div>
+                <p className="text-sm text-gray-600 mb-3 ml-10">
+                  Choose which product this offer applies to.
+                </p>
+                <div className="ml-10">
+                  <select
+                    name="product_id"
+                    value={formData.product_id}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded-md p-2.5 focus:ring-2 focus:ring-primary focus:border-primary"
+                    required
+                  >
+                    <option value="">-- Select a Product --</option>
+                    {products.map((product) => (
+                      <option key={product.id} value={product.id}>
+                        {product.name} - MVR {product.price}
+                      </option>
+                    ))}
+                  </select>
+                  {!formData.product_id && (
+                    <p className="text-xs text-amber-600 mt-1">⚠️ Product selection is required</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Step 3: Expiry Date */}
+              <div className="border-l-4 border-primary pl-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white font-bold text-sm">
+                    3
+                  </div>
+                  <h3 className="text-base font-semibold text-gray-900">Set Expiry Date</h3>
+                </div>
+                <p className="text-sm text-gray-600 mb-3 ml-10">
+                  Select when this offer should expire. The offer will automatically end on this date.
+                </p>
+                <div className="ml-10">
+                  <input
+                    type="date"
+                    name="expire_at"
+                    value={formData.expire_at}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded-md p-2.5 focus:ring-2 focus:ring-primary focus:border-primary"
+                    min={new Date().toISOString().split('T')[0]}
+                    required
                   />
-                </label>
-                <p className="text-xs text-gray-500 mt-1">Click image to upload a new one</p>
+                  {!formData.expire_at && (
+                    <p className="text-xs text-amber-600 mt-1">⚠️ Expiry date is required</p>
+                  )}
+                  {formData.expire_at && (
+                    <p className="text-xs text-green-600 mt-1">✓ Offer will expire on {new Date(formData.expire_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                  )}
+                </div>
               </div>
 
-              {/* Product Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Select Product *
-                </label>
-                <select
-                  name="product_id"
-                  value={formData.product_id}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-md p-2.5 focus:ring-2 focus:ring-primary focus:border-transparent"
-                  required
-                >
-                  <option value="">-- Select a Product --</option>
-                  {products.map((product) => (
-                    <option key={product.id} value={product.id}>
-                      {product.name} - MVR {product.price}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Expiry Date */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Expiry Date *
-                </label>
-                <input
-                  type="date"
-                  name="expire_at"
-                  value={formData.expire_at}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-md p-2.5 focus:ring-2 focus:ring-primary focus:border-transparent"
-                  min={new Date().toISOString().split('T')[0]}
-                  required
-                />
-              </div>
+              {/* Summary Box */}
+              {formData.product_id && formData.expire_at && (
+                <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center justify-center w-6 h-6 rounded-full bg-green-500 text-white">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <h4 className="text-sm font-semibold text-gray-900">Ready to Create</h4>
+                  </div>
+                  <p className="text-xs text-gray-600 ml-8">
+                    All required fields are complete. Click "Create Offer" to activate this offer.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 

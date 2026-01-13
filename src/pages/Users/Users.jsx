@@ -174,7 +174,7 @@ const Users = () => {
                   <th className="px-6 py-3.5 font-medium">Name</th>
                   <th className="px-6 py-3.5 font-medium">Email</th>
                   <th className="px-6 py-3.5 font-medium">Phone No</th>
-                  <th className="px-6 py-3.5 font-medium">Last Seen</th>
+                  <th className="px-6 py-3.5 font-medium">Last Updated</th>
                   <th className="px-6 py-3.5 font-medium">Rewards</th>
                   <th className="px-6 py-3.5 font-medium">Status</th>
                   <th className="px-6 py-3.5 font-medium">Action</th>
@@ -326,8 +326,8 @@ const Users = () => {
                         type="email"
                         name="email"
                         value={editFormData.email}
-                        onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-md p-2.5 focus:ring-2 focus:ring-primary focus:border-transparent"
+                        disabled
+                        className="w-full border border-gray-300 rounded-md p-2.5 bg-gray-100 text-gray-600 cursor-not-allowed"
                         required
                       />
                     </div>

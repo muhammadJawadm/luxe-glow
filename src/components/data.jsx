@@ -10,6 +10,8 @@ import {
   MdEventNote,
   MdReceipt,
 } from "react-icons/md";
+import { RiShoppingBag3Fill } from "react-icons/ri";
+import { MdAppRegistration } from "react-icons/md";
 import { MdDashboardCustomize } from "react-icons/md";
 import { AiFillProduct, AiFillSetting } from "react-icons/ai";
 import { FiBox, FiShoppingCart, FiTag, FiPackage } from "react-icons/fi";
@@ -17,6 +19,24 @@ import { BsCart3 } from "react-icons/bs";
 export const sidebarLinks = [
   { name: "Dashboard", path: "/", icon: <MdDashboardCustomize /> },
   { name: "Customers", path: "/users", icon: <FaUsers /> },
+  {
+    name: "POS",
+    icon: <RiShoppingBag3Fill />,
+    subLinks: [
+      {
+        name: "Sell",
+        path: "/pos/sell",
+        icon: <MdAppRegistration />,
+      },
+      // {
+      //   name: "Register",
+      //   path: "/pos/register",
+      //   icon: <MdAppRegistration />,
+      // },
+      { name: "Payments", path: "/pos/payments", icon: <MdPayments /> },
+      { name: "Bills", path: "/pos/bills", icon: <MdReceipt /> },
+    ],
+  },
   { name: "Categories", path: "/category", icon: <MdCategory /> },
   { name: "Brands", path: "/brand", icon: <MdOutlineBrandingWatermark /> },
   { name: "Products", path: "/product", icon: <AiFillProduct /> },

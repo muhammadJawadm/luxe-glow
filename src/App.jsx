@@ -15,6 +15,13 @@ import Content from "./pages/Content/Content";
 import Payment from "./pages/Pyament/Payment";
 import Brand from "./pages/Brand/Brand";
 import Discount from "./pages/Discount/Discount";
+
+import Register from "./pages/POSDashboard/Register";
+import RegisterSessions from "./pages/POSDashboard/RegisterSessions";
+import PosBills from "./pages/POSDashboard/PosBills";
+import PosSell from "./pages/POSDashboard/PosSell";
+import PosPayment from "./pages/POSDashboard/posPayment";
+
 import Notifications from "./pages/Notifications/Notifications";
 import Inventory from "./pages/Inventory/Inventory";
 import Cart from "./pages/Cart/Cart";
@@ -40,6 +47,12 @@ function App() {
         <Route path="/users" element={<Users />} />
         <Route path="/category" element={<Categories />} />
         <Route path="/product" element={<Products />} />
+
+        <Route path="/pos/sell" element={<PosSell />} />
+        <Route path="/pos/register" element={<Register />} />
+        <Route path="/pos/registerSession" element={<RegisterSessions />} />
+        <Route path="/pos/bills" element={<PosBills />} />
+        <Route path="/pos/payments" element={<PosPayment />} />
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/order" element={<Orders />} />
         <Route path="/cart" element={<Cart />} />

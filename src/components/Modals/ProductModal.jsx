@@ -5,9 +5,11 @@ import { Link } from "react-router-dom";
 import { createProduct, updateProduct } from "../../services/productServices";
 import { fetchCategories } from "../../services/categoriesServices";
 import { fetchBrands } from "../../services/brandsServices";
+import { supabase } from "../../lib/supabase";
 
 const ProductModal = ({ product, isOpen, onClose, onSave }) => {
   const modalRef = useRef(null);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     price: "",
@@ -49,7 +51,7 @@ const ProductModal = ({ product, isOpen, onClose, onSave }) => {
         name: product.name || "",
         price: product.price || "",
         stock_level: product.stock_level || "",
-        category_id: product.category_id || "",
+        category_id: product.categorie_id || "", // Database uses 'categorie_id' not 'category_id'
         brand_id: product.brand_id || "",
         description: product.description || "",
         rating: product.rating || 0,
@@ -111,8 +113,41 @@ const ProductModal = ({ product, isOpen, onClose, onSave }) => {
       setFormData((prev) => ({
         ...prev,
         image: file,
-        imagePreview: URL.createObjectURL(file),
       }));
+      // Use FileReader for preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData((prev) => ({
+          ...prev,
+          imagePreview: reader.result,
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadImage = async () => {
+    if (!formData.image) return formData.imagePreview;
+
+    try {
+      const fileExt = formData.image.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
+      const filePath = `products/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('images')
+        .upload(filePath, formData.image);
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from('images')
+        .getPublicUrl(filePath);
+
+      return urlData.publicUrl;
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      throw error;
     }
   };
 
@@ -123,24 +158,55 @@ const ProductModal = ({ product, isOpen, onClose, onSave }) => {
       return;
     }
 
+    setLoading(true);
+
     try {
+      // Upload image if new file selected
+      let imageUrl = formData.imagePreview;
+      if (formData.image) {
+        imageUrl = await uploadImage();
+      }
+
       const productData = {
         name: formData.name,
         description: formData.description,
         price: parseFloat(formData.price),
         stock_level: parseInt(formData.stock_level) || 0,
-        category_id: formData.category_id,
+        categorie_id: formData.category_id, // Database column is 'categorie_id' not 'category_id'
         brand_id: formData.brand_id,
         rating: parseFloat(formData.rating) || 0,
       };
 
+      let productId;
       if (product) {
         // Update existing product
         await updateProduct(product.id, productData);
+        productId = product.id;
+
+        // Update product image if changed
+        if (formData.image && imageUrl) {
+          // Delete old image entry and create new one
+          await supabase
+            .from('product_images')
+            .delete()
+            .eq('product_id', productId);
+
+          await supabase
+            .from('product_images')
+            .insert({ product_id: productId, image_url: imageUrl });
+        }
         alert("Product updated successfully!");
       } else {
         // Create new product
-        await createProduct(productData);
+        const response = await createProduct(productData);
+        productId = response[0]?.id || response.id;
+
+        // Add product image to product_images table
+        if (imageUrl && productId) {
+          await supabase
+            .from('product_images')
+            .insert({ product_id: productId, image_url: imageUrl });
+        }
         alert("Product created successfully!");
       }
 
@@ -153,6 +219,8 @@ const ProductModal = ({ product, isOpen, onClose, onSave }) => {
     } catch (error) {
       console.error("Error saving product:", error);
       alert("Failed to save product. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -318,9 +386,10 @@ const ProductModal = ({ product, isOpen, onClose, onSave }) => {
           </button>
           <button
             onClick={handleSubmit}
-            className="px-5 py-2.5 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors font-medium shadow-sm"
+            className="px-5 py-2.5 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={loading}
           >
-            {product ? "Update Product" : "Create Product"}
+            {loading ? "Saving..." : product ? "Update Product" : "Create Product"}
           </button>
         </div>
       </div>

@@ -28,11 +28,14 @@ export const clearUserCart = async (userId) => {
 
 export const getCartStatistics = async () => {
     try {
-        const { data, error } = cartService.getAll({
+        const response = await cartService.getAll({
             select: 'id, quantity, products(*)'
-        })
-        if (error) {
-            throw error;
+        });
+
+        const data = response.data || response || [];
+
+        if (response.error) {
+            throw response.error;
         }
 
         const totalItems = data?.length || 0;
@@ -49,6 +52,10 @@ export const getCartStatistics = async () => {
         };
     } catch (error) {
         console.error('Error in getCartStatistics:', error);
-        throw error;
+        return {
+            totalItems: 0,
+            totalProducts: 0,
+            estimatedValue: 0
+        };
     }
 };
