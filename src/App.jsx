@@ -20,7 +20,7 @@ import Register from "./pages/POSDashboard/Register";
 import RegisterSessions from "./pages/POSDashboard/RegisterSessions";
 import PosBills from "./pages/POSDashboard/PosBills";
 import PosSell from "./pages/POSDashboard/PosSell";
-import PosPayment from "./pages/POSDashboard/posPayment";
+import PosPayment from "./pages/POSDashboard/PosPayment";
 
 import Notifications from "./pages/Notifications/Notifications";
 import Inventory from "./pages/Inventory/Inventory";
