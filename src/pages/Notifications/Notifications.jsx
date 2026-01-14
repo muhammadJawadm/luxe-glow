@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import Header from "../../layouts/partials/header";
-import { FiSearch, FiSend, FiBell, FiUsers, FiCheck } from "react-icons/fi";
+import { FiSearch, FiSend, FiBell, FiUsers, FiCheck, FiClock } from "react-icons/fi";
 import { fetchUsers } from "../../services/userServices";
+import { fetchNotifications } from "../../services/notificationServices";
 import { supabase } from "../../lib/supabase";
 
 const Notifications = () => {
@@ -14,6 +15,10 @@ const Notifications = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [sendingProgress, setSendingProgress] = useState({ current: 0, total: 0 });
 
+  // Notification history state
+  const [notifications, setNotifications] = useState([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(true);
+
   // Form state
   const [formData, setFormData] = useState({
     title: "",
@@ -25,6 +30,7 @@ const Notifications = () => {
 
   useEffect(() => {
     loadUsers();
+    loadNotifications();
   }, []);
 
   const loadUsers = async () => {
@@ -39,6 +45,18 @@ const Notifications = () => {
       console.error("Error loading users:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadNotifications = async () => {
+    try {
+      setNotificationsLoading(true);
+      const data = await fetchNotifications();
+      setNotifications(data);
+    } catch (error) {
+      console.error("Error loading notifications:", error);
+    } finally {
+      setNotificationsLoading(false);
     }
   };
 
@@ -144,6 +162,9 @@ const Notifications = () => {
         setFormData({ title: "", message: "", sendTo: "all" });
         setSelectedUsers([]);
         setSearchTerm("");
+
+        // Reload notifications to show the newly sent ones
+        loadNotifications();
       } else {
         setError(`Failed to send notifications. Please try again.`);
       }
@@ -175,6 +196,98 @@ const Notifications = () => {
                 Broadcast messages to all users or select specific recipients. Currently <strong>{users.length} users</strong> are eligible to receive notifications.
               </p>
             </div>
+          </div>
+        </div>
+
+        {/* Notification History Section */}
+        <div className="mb-6 bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+          <div className="bg-gradient-to-r from-primary to-primary/80 px-6 py-4">
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              <FiClock className="text-lg" />
+              Notification History
+            </h2>
+          </div>
+
+          <div className="p-6">
+            {notificationsLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin h-10 w-10 border-4 border-primary border-t-transparent rounded-full"></div>
+              </div>
+            ) : notifications.length === 0 ? (
+              <div className="text-center py-12">
+                <FiBell className="mx-auto h-12 w-12 text-gray-300 mb-3" />
+                <p className="text-gray-500 font-medium">No notifications sent yet</p>
+                <p className="text-sm text-gray-400 mt-1">Your notification history will appear here</p>
+              </div>
+            ) : (
+              <div className="space-y-4 max-h-[500px] overflow-y-auto">
+                {notifications.map((notification) => {
+                  const userName = notification.users
+                    ? (notification.users.name || `${notification.users.first_name || ''} ${notification.users.last_name || ''}`.trim() || notification.users.email)
+                    : 'Unknown User';
+                  const userEmail = notification.users?.email || 'N/A';
+                  const formattedDate = new Date(notification.created_at).toLocaleString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  });
+
+                  return (
+                    <div
+                      key={notification.id}
+                      className="bg-gradient-to-r from-gray-50 to-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-start gap-3">
+                            {notification.image_url && (
+                              <img
+                                src={notification.image_url}
+                                alt="Notification"
+                                className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+                              />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-lg font-bold text-gray-900 mb-1">
+                                {notification.title}
+                              </h3>
+                              {notification.sub_title && (
+                                <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+                                  {notification.sub_title}
+                                </p>
+                              )}
+                              <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
+                                <div className="flex items-center gap-1">
+                                  <FiUsers className="text-primary" />
+                                  <span className="font-medium">{userName}</span>
+                                </div>
+                                <span className="text-gray-300">•</span>
+                                <span className="text-gray-600">{userEmail}</span>
+                                <span className="text-gray-300">•</span>
+                                <div className="flex items-center gap-1">
+                                  <FiClock className="text-gray-400" />
+                                  <span>{formattedDate}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex-shrink-0">
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${notification.sender === 'admin'
+                            ? 'bg-purple-100 text-purple-700'
+                            : 'bg-blue-100 text-blue-700'
+                            }`}>
+                            {notification.sender}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
 
