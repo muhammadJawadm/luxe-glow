@@ -34,7 +34,7 @@ export const sidebarLinks = [
       //   icon: <MdAppRegistration />,
       // },
       { name: "Payments", path: "/pos/payments", icon: <MdPayments /> },
-      { name: "Bills", path: "/pos/bills", icon: <MdReceipt /> },
+      // { name: "Bills", path: "/pos/bills", icon: <MdReceipt /> },
     ],
   },
   { name: "Categories", path: "/category", icon: <MdCategory /> },
