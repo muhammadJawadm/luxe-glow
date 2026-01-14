@@ -3,19 +3,37 @@ import { PiBellLight } from "react-icons/pi";
 import { RiCloseFill } from "react-icons/ri";
 import { Link, useNavigate } from "react-router-dom";
 import { IoArrowBack } from "react-icons/io5";
-import { FiUser, FiLogOut, FiX } from "react-icons/fi";
+import { FiUser, FiLogOut, FiX, FiClock, FiBell } from "react-icons/fi";
 import { getCurrentUser, logout } from "../../services/authService";
+import { fetchNotifications } from "../../services/notificationServices";
+
 const Header = ({ header, link, arrow }) => {
   const [drop, setDrop] = useState(false);
   const [showMenue, setShowMenue] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     const user = getCurrentUser();
     setCurrentUser(user);
+    loadNotifications();
   }, []);
+
+  const loadNotifications = async () => {
+    try {
+      setNotificationsLoading(true);
+      const data = await fetchNotifications();
+      // Get only the latest 10 notifications
+      setNotifications(data.slice(0, 10));
+    } catch (error) {
+      console.error("Error loading notifications:", error);
+    } finally {
+      setNotificationsLoading(false);
+    }
+  };
 
   // Helper function to format email into display name
   const getDisplayName = () => {
@@ -60,9 +78,14 @@ const Header = ({ header, link, arrow }) => {
               <div className="flex flex-row">
                 <div
                   onClick={(e) => setShowMenue(true)}
-                  className="rounded-full drop-shadow-lg  flex justify-center items-center  mr-1 sm:mr-4 w-9 h-9"
+                  className="rounded-full drop-shadow-lg  flex justify-center items-center  mr-1 sm:mr-4 w-9 h-9 cursor-pointer hover:bg-gray-100 transition-colors relative"
                 >
                   <PiBellLight className="w-6 h-6" />
+                  {notifications.length > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                      {notifications.length > 9 ? '9+' : notifications.length}
+                    </span>
+                  )}
                 </div>
                 <button
                   type="button"
@@ -110,31 +133,118 @@ const Header = ({ header, link, arrow }) => {
         </nav>
       </div>
 
-      <aside
-        className={`fixed top-0 right-0 z-40 w-96 text-black bg-gradient-to-b from-gray-50 to-gray-100 h-screen ${showMenue ? "block" : `hidden`
-          }`}
-        aria-label="Sidebar"
-      >
-        <div className="h-full px-3 py-4 overflow-y-auto space-y-3">
-          {showMenue && (
-            <button
-              className="float-right text-xl text-black"
-              onClick={(e) => setShowMenue(false)}
-            >
-              <RiCloseFill />
-            </button>
-          )}
-          <div className="pt-5">
-            <div className="rounded-md border px-4 py-1.5 space-y-1 bg-white shadow-md">
-              <h1 className="font-semibold">Title</h1>
-              <p className="text-xs font-medium text-gray-400">
-                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Neque,
-                eligendi.
-              </p>
+
+      {showMenue && (
+        <div className="fixed inset-0 z-40" onClick={() => setShowMenue(false)}>
+          <div
+            className="absolute top-20 right-4 w-96 bg-white rounded-lg shadow-2xl border border-gray-200 max-h-[600px] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="bg-gradient-to-r from-primary to-primary/80 px-6 py-4 flex items-center justify-between">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <FiBell className="text-xl" />
+                Notifications
+              </h3>
+              <button
+                onClick={() => setShowMenue(false)}
+                className="text-white hover:text-gray-200 transition-colors"
+              >
+                <RiCloseFill className="text-2xl" />
+              </button>
             </div>
+
+            {/* Notification List */}
+            <div className="overflow-y-auto max-h-[450px]">
+              {notificationsLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+                </div>
+              ) : notifications.length === 0 ? (
+                <div className="text-center py-12 px-4">
+                  <FiBell className="mx-auto h-12 w-12 text-gray-300 mb-3" />
+                  <p className="text-gray-500 font-medium">No notifications yet</p>
+                  <p className="text-sm text-gray-400 mt-1">You'll see notifications here</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-100">
+                  {notifications.map((notification) => {
+                    const userName = notification.users
+                      ? (notification.users.name || `${notification.users.first_name || ''} ${notification.users.last_name || ''}`.trim() || notification.users.email)
+                      : 'Unknown User';
+                    const formattedDate = new Date(notification.created_at).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    });
+
+                    return (
+                      <div
+                        key={notification.id}
+                        className="p-4 hover:bg-gray-50 transition-colors"
+                      >
+                        <div className="flex items-start gap-3">
+                          {notification.image_url ? (
+                            <img
+                              src={notification.image_url}
+                              alt="Notification"
+                              className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                              <FiBell className="text-primary" />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-sm font-semibold text-gray-900 mb-1 line-clamp-1">
+                              {notification.title}
+                            </h4>
+                            {notification.sub_title && (
+                              <p className="text-xs text-gray-600 mb-2 line-clamp-2">
+                                {notification.sub_title}
+                              </p>
+                            )}
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                              <span className="font-medium">{userName}</span>
+                              <span className="text-gray-300">•</span>
+                              <div className="flex items-center gap-1">
+                                <FiClock className="text-gray-400" />
+                                <span>{formattedDate}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <span className={`px-2 py-1 rounded-full text-xs font-semibold flex-shrink-0 ${notification.sender === 'admin'
+                            ? 'bg-purple-100 text-purple-700'
+                            : 'bg-blue-100 text-blue-700'
+                            }`}>
+                            {notification.sender}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            {notifications.length > 0 && (
+              <div className="border-t border-gray-200 bg-gray-50 px-4 py-3">
+                <button
+                  onClick={() => {
+                    setShowMenue(false);
+                    navigate('/notifications');
+                  }}
+                  className="w-full text-center text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
+                >
+                  View All Notifications
+                </button>
+              </div>
+            )}
           </div>
         </div>
-      </aside>
+      )}
 
       {/* Profile Modal */}
       {isProfileModalOpen && (
