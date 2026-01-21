@@ -48,10 +48,11 @@ const Products = () => {
       setFilteredProducts(productData);
     } else {
       const filtered = productData.filter(product =>
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (product.brands?.name && product.brands.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (product.categories?.name && product.categories.name.toLowerCase().includes(searchQuery.toLowerCase()))
+        product.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.upc_number?.includes(searchQuery) ||
+        (product.brands?.name && product.brands.name?.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (product.categories?.name && product.categories.name?.toLowerCase().includes(searchQuery.toLowerCase()))
       );
       setFilteredProducts(filtered);
     }
@@ -197,7 +198,7 @@ const Products = () => {
               <thead className="bg-gradient-to-r from-primary to-primary/80 text-white">
                 <tr>
                   <th className="px-6 py-3.5 font-medium">Name</th>
-                  {/* <th className="px-6 py-3.5 font-medium">Description</th> */}
+                  <th className="px-6 py-3.5 font-medium">Barcode Number</th>
                   <th className="px-6 py-3.5 font-medium">Price</th>
                   <th className="px-6 py-3.5 font-medium">Rating</th>
                   <th className="px-6 py-3.5 font-medium">Created At</th>
@@ -236,6 +237,7 @@ const Products = () => {
                           </h3>
                         </div>
                       </td>
+                      <td className="px-6 py-3 text-gray-600">{item.upc_number}</td>
                       <td className="px-6 py-3 text-gray-600">MVR {item.price}</td>
                       <td className="px-6 py-3">
                         <div className="flex items-center space-x-1 text-yellow-500">

@@ -18,6 +18,7 @@ const ProductModal = ({ product, isOpen, onClose, onSave }) => {
     brand_id: "",
     description: "",
     rating: 0,
+    upc_number: "",
     image: null,
     imagePreview: "",
   });
@@ -55,6 +56,7 @@ const ProductModal = ({ product, isOpen, onClose, onSave }) => {
         brand_id: product.brand_id || "",
         description: product.description || "",
         rating: product.rating || 0,
+        upc_number: product.upc_number || "",
         image: null,
         imagePreview: product.product_images?.[0]?.image_url || "",
       });
@@ -67,6 +69,7 @@ const ProductModal = ({ product, isOpen, onClose, onSave }) => {
         brand_id: "",
         description: "",
         rating: 0,
+        upc_number: "",
         image: null,
         imagePreview: "",
       });
@@ -96,6 +99,7 @@ const ProductModal = ({ product, isOpen, onClose, onSave }) => {
       brand_id: "",
       description: "",
       rating: 0,
+      upc_number: "",
       image: null,
       imagePreview: "",
     });
@@ -175,6 +179,7 @@ const ProductModal = ({ product, isOpen, onClose, onSave }) => {
         categorie_id: formData.category_id, // Database column is 'categorie_id' not 'category_id'
         brand_id: formData.brand_id,
         rating: parseFloat(formData.rating) || 0,
+        upc_number: formData.upc_number || null,
       };
 
       let productId;
@@ -314,6 +319,21 @@ const ProductModal = ({ product, isOpen, onClose, onSave }) => {
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-md p-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="0"
+              />
+            </div>
+
+            {/* UPC/Barcode Number */}
+            <div className="md:col-span-2">
+              <label className="block mb-1 text-sm font-medium text-gray-700">
+                UPC / Barcode Number
+              </label>
+              <input
+                type="text"
+                name="upc_number"
+                value={formData.upc_number}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-md p-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                placeholder="Enter barcode number (e.g., 123456789012)"
               />
             </div>
 
