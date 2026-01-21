@@ -20,12 +20,8 @@ const PosSell = () => {
                 const response = await fetchProducts();
                 console.log('Full response:', response);
                 console.log('response.data:', response.data);
-                console.log('Array.isArray(response.data):', Array.isArray(response.data));
-
                 const productsArray = Array.isArray(response) ? response : (response.data || []);
-                console.log('Products array length:', productsArray.length);
                 setProducts(productsArray);
-                console.log('Products state should be set to:', productsArray);
             } catch (error) {
                 console.error("Error fetching products:", error);
                 alert("Failed to load products. Please try again.");
@@ -114,6 +110,7 @@ const PosSell = () => {
     const filteredProducts = products.filter((product) =>
         product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.upc_number?.toString().includes(searchQuery) ||
         product.brands?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.categories?.name?.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -151,35 +148,6 @@ const PosSell = () => {
                         </div>
                     </div>
 
-                    {searchQuery && filteredProducts.length > 0 && (
-                        <div className="absolute z-10 mt-1 w-full md:w-96 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                            {filteredProducts.map((product) => (
-                                <div
-                                    key={product.id}
-                                    onClick={() => handleProductSelect(product)}
-                                    className="cursor-pointer px-4 py-3 hover:bg-blue-50 flex items-center gap-3 border-b border-gray-100 last:border-0"
-                                >
-                                    <img
-                                        src={product.product_images?.[0]?.image_url || "https://via.placeholder.com/150"}
-                                        alt={product.name}
-                                        className="w-10 h-10 rounded object-cover"
-                                    />
-                                    <div>
-                                        <h3 className="font-medium text-gray-800">
-                                            {product.name}
-                                        </h3>
-                                        <p className="text-xs text-gray-500">
-                                            {product.description || product.brands?.name || 'No description'}
-                                        </p>
-                                        <p className="text-xs text-primary font-semibold">
-                                            MVR {product.price} • Stock: {product.stock_level}
-                                        </p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-
                     {!selectedProduct && (
                         <div className="mt-6">
                             {loading ? (
@@ -192,9 +160,13 @@ const PosSell = () => {
                                 </div>
                             ) : (
                                 <div>
-                                    <h3 className="text-sm font-medium text-gray-700 mb-3">Quick Select ({products.length} products)</h3>
+                                    <h3 className="text-sm font-medium text-gray-700 mb-3">
+                                        {searchQuery
+                                            ? `Search Results (${filteredProducts.length} ${filteredProducts.length === 1 ? 'product' : 'products'})`
+                                            : `Quick Select (${filteredProducts.length} products)`}
+                                    </h3>
                                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                                        {products.map((product) => (
+                                        {filteredProducts.map((product) => (
                                             <button
                                                 key={product.id}
                                                 onClick={() => handleProductSelect(product)}
