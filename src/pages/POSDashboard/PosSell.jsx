@@ -3,6 +3,8 @@ import Header from "../../layouts/partials/header";
 import SellProductForm from "./SellProductForm";
 import { FiSearch, FiX } from "react-icons/fi";
 import { fetchProducts, updateProduct } from "../../services/productServices";
+import { createInvoice } from "../../services/posInvoiceServices";
+import { generateInvoicePDF, prepareInvoiceData } from "../../utils/invoiceGenerator";
 
 const PosSell = () => {
     const [searchQuery, setSearchQuery] = useState("");
@@ -53,22 +55,59 @@ const PosSell = () => {
                 return;
             }
 
-            // Update product stock in database
+            // 1. Save invoice to database
+            const invoiceData = {
+                product_id: selectedProduct.id,
+                final_price: data.finalPrice,
+                discount: data.discount || 0,
+                quantity: data.quantity
+            };
+
+            const invoiceResponse = await createInvoice(invoiceData);
+
+            if (!invoiceResponse || invoiceResponse.length === 0) {
+                throw new Error("Failed to create invoice in database");
+            }
+
+            const invoiceId = invoiceResponse[0].id;
+
+            // 2. Update product stock in database
             await updateProduct(selectedProduct.id, {
                 stock_level: newStockLevel
             });
 
-            alert(`Product sold successfully! ${data.quantity} unit(s) of ${selectedProduct.name} sold.`);
+            // 3. Generate and download PDF invoice
+            const pdfInvoiceData = prepareInvoiceData({
+                product: selectedProduct,
+                quantity: data.quantity,
+                price: data.price,
+                discount: data.discount,
+                finalPrice: data.finalPrice,
+                invoiceId: invoiceId
+            });
 
-            // Refresh products list
+            const pdfFileName = generateInvoicePDF(pdfInvoiceData);
+
+            // 4. Show success message
+            alert(
+                `Sale completed successfully!\n\n` +
+                `Invoice ID: ${invoiceId}\n` +
+                `Product: ${selectedProduct.name}\n` +
+                `Quantity: ${data.quantity} unit(s)\n` +
+                `Total Amount: MVR ${(data.finalPrice * data.quantity).toFixed(2)}\n` +
+                `${data.discount > 0 ? `Discount Applied: MVR ${(data.discount * data.quantity).toFixed(2)}\n` : ''}` +
+                `\nPDF Invoice: ${pdfFileName} has been downloaded.`
+            );
+
+            // 5. Refresh products list
             const response = await fetchProducts();
             setProducts(Array.isArray(response) ? response : (response.data || []));
 
-            // Clear selection
+            // 6. Clear selection
             setSelectedProduct(null);
         } catch (error) {
             console.error("Error processing sale:", error);
-            alert("Failed to process sale. Please try again.");
+            alert(`Failed to process sale: ${error.message}. Please try again.`);
         }
     };
 
