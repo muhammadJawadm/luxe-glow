@@ -208,7 +208,7 @@ const Discount = () => {
                   ) : (
                     <button
                       onClick={handleEditConfig}
-                      className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+                      className="flex items-center px-4 py-2 bg-primary hover:bg-primary/80 text-white rounded-md transition-colors"
                     >
                       <FiEdit className="mr-2" />
                       Edit Configuration
