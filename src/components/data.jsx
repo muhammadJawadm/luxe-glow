@@ -49,5 +49,5 @@ export const sidebarLinks = [
   // { name: "Inventory", path: "/inventory", icon: <FiBox /> },
   { name: "Payment", path: "/payment", icon: <MdPayments /> },
   { name: "Content", path: "/content", icon: <MdContentCopy /> },
-  { name: "Discount", path: "/discount", icon: <AiFillSetting /> },
+  { name: "Tax & Delivery Charges", path: "/discount", icon: <AiFillSetting /> },
 ];
