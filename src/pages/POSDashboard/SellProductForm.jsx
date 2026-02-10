@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { fetchCheckoutConfig } from "../../services/checkoutConfigServices";
 
 const SellProductForm = ({ product, onSell }) => {
     const [price, setPrice] = useState("");
@@ -7,7 +8,22 @@ const SellProductForm = ({ product, onSell }) => {
     const [shippingOption, setShippingOption] = useState("standard");
     const [discountType, setDiscountType] = useState("percentage"); // percentage or fixed
     const [discountValue, setDiscountValue] = useState(0);
+    const [taxRate, setTaxRate] = useState(0); // Tax rate from checkout_configs
+    const [loadingTax, setLoadingTax] = useState(true);
 
+
+    // Fetch tax rate from checkout config
+    useEffect(() => {
+        const loadTaxRate = async () => {
+            setLoadingTax(true);
+            const config = await fetchCheckoutConfig();
+            if (config && config.tax_rate !== undefined) {
+                setTaxRate(config.tax_rate);
+            }
+            setLoadingTax(false);
+        };
+        loadTaxRate();
+    }, []);
 
     // Set price from product when product changes
     useEffect(() => {
@@ -16,7 +32,7 @@ const SellProductForm = ({ product, onSell }) => {
         }
     }, [product]);
 
-    // Calculate discount amount and final price
+    // Calculate discount amount, tax, and final price
     const calculatePrices = () => {
         const basePrice = parseFloat(price) || 0;
         let discountAmount = 0;
@@ -29,15 +45,21 @@ const SellProductForm = ({ product, onSell }) => {
 
         // Ensure discount doesn't exceed price
         discountAmount = Math.min(discountAmount, basePrice);
-        const finalPrice = basePrice - discountAmount;
+        const subtotal = basePrice - discountAmount;
+
+        // Calculate tax on the subtotal (after discount)
+        const taxAmount = subtotal * (taxRate / 100);
+        const grandTotal = subtotal + taxAmount;
 
         return {
             discountAmount: discountAmount.toFixed(2),
-            finalPrice: finalPrice.toFixed(2)
+            subtotal: subtotal.toFixed(2),
+            taxAmount: taxAmount.toFixed(2),
+            grandTotal: grandTotal.toFixed(2)
         };
     };
 
-    const { discountAmount, finalPrice } = calculatePrices();
+    const { discountAmount, subtotal, taxAmount, grandTotal } = calculatePrices();
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -53,7 +75,10 @@ const SellProductForm = ({ product, onSell }) => {
             name: product.name,
             price: parseFloat(price),
             discount: parseFloat(discountAmount),
-            finalPrice: parseFloat(finalPrice),
+            subtotal: parseFloat(subtotal),
+            taxRate: taxRate,
+            taxAmount: parseFloat(taxAmount),
+            grandTotal: parseFloat(grandTotal),
             condition,
             quantity,
             shippingOption,
@@ -234,16 +259,24 @@ const SellProductForm = ({ product, onSell }) => {
                             <span className="font-medium text-red-600">-MVR {discountAmount}</span>
                         </div>
                     )}
+                    <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Subtotal (after discount):</span>
+                        <span className="font-medium">MVR {subtotal}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Tax ({taxRate}%):</span>
+                        <span className="font-medium text-blue-600">+MVR {taxAmount}</span>
+                    </div>
                     <div className="border-t border-gray-200 pt-2 mt-2">
                         <div className="flex justify-between">
-                            <span className="font-semibold text-gray-800">Final Price (per unit):</span>
-                            <span className="font-bold text-lg text-primary">MVR {finalPrice}</span>
+                            <span className="font-semibold text-gray-800">Price per Unit (inc. tax):</span>
+                            <span className="font-bold text-lg text-primary">MVR {grandTotal}</span>
                         </div>
                     </div>
                     <div className="border-t border-gray-200 pt-2 mt-2">
                         <div className="flex justify-between">
                             <span className="font-semibold text-gray-800">Total Amount ({quantity} unit{quantity > 1 ? 's' : ''}):</span>
-                            <span className="font-bold text-xl text-green-600">MVR {(parseFloat(finalPrice) * quantity).toFixed(2)}</span>
+                            <span className="font-bold text-xl text-green-600">MVR {(parseFloat(grandTotal) * quantity).toFixed(2)}</span>
                         </div>
                     </div>
                 </div>
