@@ -182,6 +182,7 @@ const ProductDetail = () => {
                   </div>
                   <ProductInfo
                     title={product.name}
+                    cost={product.cost}
                     price={product.price}
                     stock={product.stock_level}
                     description={product.description}

@@ -14,7 +14,7 @@ export const fetchOrderedProductById = (orderedProductId) => orderedProductsServ
 });
 
 export const fetchOrderedProductsByOrderId = async (orderId) => orderedProductsService.getAll({
-    select: `*,products(id, name, price, categories(name))`,
+    select: `*,products(id, name, price)`,
     filter: { order_id: orderId },
     orderBy: "created_at",
     ascending: false

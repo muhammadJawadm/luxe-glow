@@ -44,9 +44,12 @@ const Offers = () => {
     if (searchQuery.trim() === "") {
       setFilteredOffers(offersData);
     } else {
-      const filtered = offersData.filter(offer =>
-        offer.products?.name?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+      const filtered = offersData.filter(offer => {
+        const productName = offer.products?.name?.toLowerCase() || "";
+        const brandName = offer.brands?.name?.toLowerCase() || "";
+        const query = searchQuery.toLowerCase();
+        return productName.includes(query) || brandName.includes(query);
+      });
       setFilteredOffers(filtered);
     }
   }, [searchQuery, offersData]);
@@ -73,9 +76,12 @@ const Offers = () => {
       await deleteOffer(offerToDelete.id);
       const updatedOffers = offersData.filter(offer => offer.id !== offerToDelete.id);
       setOffersData(updatedOffers);
-      setFilteredOffers(updatedOffers.filter(offer =>
-        offer.products?.name?.toLowerCase().includes(searchQuery.toLowerCase())
-      ));
+      setFilteredOffers(updatedOffers.filter(offer => {
+        const productName = offer.products?.name?.toLowerCase() || "";
+        const brandName = offer.brands?.name?.toLowerCase() || "";
+        const query = searchQuery.toLowerCase();
+        return productName.includes(query) || brandName.includes(query);
+      }));
       setIsDeleteModalOpen(false);
       setOfferToDelete(null);
       alert("Offer deleted successfully!");
@@ -88,6 +94,7 @@ const Offers = () => {
   const handleOfferSaved = async () => {
     try {
       const response = await fetchOffers();
+      console.log("Fetched offers:", response);
       setOffersData(response || []);
       setFilteredOffers(response || []);
     } catch (error) {
@@ -126,7 +133,7 @@ const Offers = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-              placeholder="Search by product name..."
+              placeholder="Search by product or brand name..."
             />
           </div>
           <button
@@ -165,6 +172,24 @@ const Offers = () => {
                   key={offer.id}
                   className="relative group bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100"
                 >
+                  {/* Action Buttons - Always Visible */}
+                  <div className="absolute top-3 left-3 z-10 flex gap-2">
+                    <button
+                      onClick={() => handleEditClick(offer)}
+                      className="p-2 rounded-full bg-white/95 text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-200 shadow-lg"
+                      title="Edit Offer"
+                    >
+                      <FiEdit className="text-base" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteClick(offer)}
+                      className="p-2 rounded-full bg-white/95 text-red-600 hover:bg-red-600 hover:text-white transition-all duration-200 shadow-lg"
+                      title="Delete Offer"
+                    >
+                      <FiTrash2 className="text-base" />
+                    </button>
+                  </div>
+
                   {/* Status Badge */}
                   <div className="absolute top-3 right-3 z-10">
                     {!isExpired(offer.expire_it) ? (
@@ -181,35 +206,21 @@ const Offers = () => {
                   {/* Offer Image */}
                   <div className="relative h-56 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
                     <img
-                      src={offer.image_url || offer.products?.product_images?.[0]?.image_url || "https://via.placeholder.com/400x300?text=No+Image"}
-                      alt={offer.products?.name || "Offer"}
+                      src={
+                        offer.image_url ||
+                        offer.products?.product_images?.[0]?.image_url ||
+                        offer.brands?.logo ||
+                        "https://via.placeholder.com/400x300?text=No+Image"
+                      }
+                      alt={offer.products?.name || offer.brands?.name || "Offer"}
                       className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
                     />
-                    {/* Overlay on hover */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="absolute bottom-4 right-4 flex gap-2">
-                        <button
-                          onClick={() => handleEditClick(offer)}
-                          className="p-2.5 rounded-full bg-white/90 text-blue-600 hover:bg-white transition-all duration-200 shadow-lg"
-                          title="Edit Offer"
-                        >
-                          <FiEdit className="text-lg" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteClick(offer)}
-                          className="p-2.5 rounded-full bg-white/90 text-red-600 hover:bg-white transition-all duration-200 shadow-lg"
-                          title="Delete Offer"
-                        >
-                          <FiTrash2 className="text-lg" />
-                        </button>
-                      </div>
-                    </div>
                   </div>
 
                   {/* Offer Details */}
                   <div className="p-4 space-y-3">
-                    {/* Product Info */}
-                    {offer.products && (
+                    {/* Product or Brand Info */}
+                    {offer.products ? (
                       <div>
                         <h3 className="text-lg font-bold text-gray-800 line-clamp-1 mb-2">
                           {offer.products.name}
@@ -222,17 +233,36 @@ const Offers = () => {
                           </div>
                         </div>
                       </div>
-                    )}
+                    ) : offer.brands ? (
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="bg-primary/10 text-primary px-2 py-1 rounded text-xs font-semibold">
+                            Brand Offer
+                          </div>
+                        </div>
+                        <h3 className="text-lg font-bold text-gray-800 line-clamp-1 mb-2">
+                          All Products Included
+                        </h3>
+                        <p className="text-sm text-gray-600 mb-2">Applies to entire brand collection</p>
+                      </div>
+                    ) : null}
 
-                    {/* Price */}
-                    {offer.products && (
+                    {/* Price for Product Offers OR Brand Name for Brand Offers */}
+                    {offer.products ? (
                       <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg px-3 py-2">
                         <p className="text-xs text-gray-600 mb-1">Product Price</p>
                         <p className="text-2xl font-bold text-primary">
                           MVR {offer.products.price}
                         </p>
                       </div>
-                    )}
+                    ) : offer.brands ? (
+                      <div className="bg-gradient-to-r from-purple-100 to-purple-50 rounded-lg px-3 py-2 border border-purple-200">
+                        <p className="text-xs text-blue-600 mb-1">Brand Name</p>
+                        <p className="text-2xl font-bold text-blue-700">
+                          {offer.brands.name}
+                        </p>
+                      </div>
+                    ) : null}
 
                     {/* Dates */}
                     <div className="pt-2 border-t border-gray-100 space-y-2">

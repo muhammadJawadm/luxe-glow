@@ -2,6 +2,7 @@ import React from "react";
 
 const ProductInfo = ({
   title,
+  cost,
   price,
   stock,
   description,
@@ -19,10 +20,16 @@ const ProductInfo = ({
         <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
       </div>
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-md font-medium text-gray-700 mb-1">
+          Cost
+        </label>
+        <p className="text-2xl font-bold text-gray-900"> {cost} <span className="text-sm font-medium text-gray-700"> MVR</span></p>
+      </div>
+      <div className="mb-4">
+        <label className="block text-md font-medium text-gray-700 mb-1">
           Price
         </label>
-        <p className="text-2xl font-bold text-gray-900">MVR {price}</p>
+        <p className="text-2xl font-bold text-gray-900"> {price} <span className="text-sm font-medium text-gray-700"> MVR</span></p>
       </div>
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-1">

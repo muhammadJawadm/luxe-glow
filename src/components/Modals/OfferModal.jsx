@@ -6,30 +6,44 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
   const modalRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState([]);
+  const [brands, setBrands] = useState([]);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [offerType, setOfferType] = useState("product"); // "product" or "brand"
 
   const [formData, setFormData] = useState({
     product_id: "",
+    brand_id: "",
     expire_at: "",
     image_url: "",
   });
 
-  // Fetch products for dropdown
+  // Fetch products and brands for dropdown
   useEffect(() => {
-    const fetchProducts = async () => {
-      const { data, error } = await supabase
+    const fetchData = async () => {
+      // Fetch products
+      const { data: productsData, error: productsError } = await supabase
         .from("products")
         .select("id, name, price")
         .order("name");
 
-      if (!error && data) {
-        setProducts(data);
+      if (!productsError && productsData) {
+        setProducts(productsData);
+      }
+
+      // Fetch brands
+      const { data: brandsData, error: brandsError } = await supabase
+        .from("brands")
+        .select("id, name")
+        .order("name");
+
+      if (!brandsError && brandsData) {
+        setBrands(brandsData);
       }
     };
 
     if (isOpen) {
-      fetchProducts();
+      fetchData();
     }
   }, [isOpen]);
 
@@ -38,17 +52,26 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
     if (offer) {
       setFormData({
         product_id: offer.product_id || "",
+        brand_id: offer.brand_id || "",
         expire_at: offer.expire_at ? offer.expire_at.split('T')[0] : "",
         image_url: offer.image_url || "",
       });
       setImagePreview(offer.image_url || null);
+      // Determine offer type based on which ID is present
+      if (offer.brand_id) {
+        setOfferType("brand");
+      } else {
+        setOfferType("product");
+      }
     } else {
       setFormData({
         product_id: "",
+        brand_id: "",
         expire_at: "",
         image_url: "",
       });
       setImagePreview(null);
+      setOfferType("product");
     }
     setImageFile(null);
   }, [offer, isOpen]);
@@ -71,11 +94,13 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
   const handleClose = () => {
     setFormData({
       product_id: "",
+      brand_id: "",
       expire_at: "",
       image_url: "",
     });
     setImageFile(null);
     setImagePreview(null);
+    setOfferType("product");
     onClose();
   };
 
@@ -125,9 +150,13 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
   };
 
   const handleSubmit = async () => {
-    // Validation
-    if (!formData.product_id) {
+    // Validation based on offer type
+    if (offerType === "product" && !formData.product_id) {
       alert("Please select a product");
+      return;
+    }
+    if (offerType === "brand" && !formData.brand_id) {
+      alert("Please select a brand");
       return;
     }
     if (!formData.expire_at) {
@@ -145,10 +174,18 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
       }
 
       const offerData = {
-        product_id: formData.product_id,
         expire_at: formData.expire_at,
         image_url: imageUrl,
       };
+
+      // Add product_id or brand_id based on offer type
+      if (offerType === "product") {
+        offerData.product_id = formData.product_id;
+        offerData.brand_id = null; // Explicitly set to null
+      } else {
+        offerData.brand_id = formData.brand_id;
+        offerData.product_id = null; // Explicitly set to null
+      }
 
       if (offer) {
         // Update existing offer
@@ -195,11 +232,48 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
             </h2>
 
             <div className="space-y-6">
-              {/* Step 1: Image Upload */}
+              {/* Step 1: Offer Type Selection */}
               <div className="border-l-4 border-primary pl-4">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white font-bold text-sm">
                     1
+                  </div>
+                  <h3 className="text-base font-semibold text-gray-900">Select Offer Type</h3>
+                </div>
+                <p className="text-sm text-gray-600 mb-3 ml-10">
+                  Choose whether this offer applies to a specific product or an entire brand.
+                </p>
+                <div className="ml-10 flex gap-4">
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="radio"
+                      name="offerType"
+                      value="product"
+                      checked={offerType === "product"}
+                      onChange={(e) => setOfferType(e.target.value)}
+                      className="mr-2 w-4 h-4 text-primary focus:ring-primary"
+                    />
+                    <span className="text-sm font-medium text-gray-700">Product Offer</span>
+                  </label>
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="radio"
+                      name="offerType"
+                      value="brand"
+                      checked={offerType === "brand"}
+                      onChange={(e) => setOfferType(e.target.value)}
+                      className="mr-2 w-4 h-4 text-primary focus:ring-primary"
+                    />
+                    <span className="text-sm font-medium text-gray-700">Brand Offer</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Step 2: Image Upload */}
+              <div className="border-l-4 border-primary pl-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white font-bold text-sm">
+                    2
                   </div>
                   <h3 className="text-base font-semibold text-gray-900">Upload Offer Image</h3>
                 </div>
@@ -227,43 +301,71 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
                 <p className="text-xs text-gray-500 mt-2 ml-10">Recommended size: 400x300px or similar ratio</p>
               </div>
 
-              {/* Step 2: Product Selection */}
-              <div className="border-l-4 border-primary pl-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white font-bold text-sm">
-                    2
-                  </div>
-                  <h3 className="text-base font-semibold text-gray-900">Select Product</h3>
-                </div>
-                <p className="text-sm text-gray-600 mb-3 ml-10">
-                  Choose which product this offer applies to.
-                </p>
-                <div className="ml-10">
-                  <select
-                    name="product_id"
-                    value={formData.product_id}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-md p-2.5 focus:ring-2 focus:ring-primary focus:border-primary"
-                    required
-                  >
-                    <option value="">-- Select a Product --</option>
-                    {products.map((product) => (
-                      <option key={product.id} value={product.id}>
-                        {product.name} - MVR {product.price}
-                      </option>
-                    ))}
-                  </select>
-                  {!formData.product_id && (
-                    <p className="text-xs text-amber-600 mt-1">⚠️ Product selection is required</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Step 3: Expiry Date */}
+              {/* Step 3: Product/Brand Selection */}
               <div className="border-l-4 border-primary pl-4">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white font-bold text-sm">
                     3
+                  </div>
+                  <h3 className="text-base font-semibold text-gray-900">
+                    {offerType === "product" ? "Select Product" : "Select Brand"}
+                  </h3>
+                </div>
+                <p className="text-sm text-gray-600 mb-3 ml-10">
+                  {offerType === "product"
+                    ? "Choose which product this offer applies to."
+                    : "Choose which brand this offer applies to."}
+                </p>
+                <div className="ml-10">
+                  {offerType === "product" ? (
+                    <>
+                      <select
+                        name="product_id"
+                        value={formData.product_id}
+                        onChange={handleChange}
+                        className="w-full border border-gray-300 rounded-md p-2.5 focus:ring-2 focus:ring-primary focus:border-primary"
+                        required
+                      >
+                        <option value="">-- Select a Product --</option>
+                        {products.map((product) => (
+                          <option key={product.id} value={product.id}>
+                            {product.name} - MVR {product.price}
+                          </option>
+                        ))}
+                      </select>
+                      {!formData.product_id && (
+                        <p className="text-xs text-amber-600 mt-1">⚠️ Product selection is required</p>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <select
+                        name="brand_id"
+                        value={formData.brand_id}
+                        onChange={handleChange}
+                        className="w-full border border-gray-300 rounded-md p-2.5 focus:ring-2 focus:ring-primary focus:border-primary"
+                        required
+                      >
+                        <option value="">-- Select a Brand --</option>
+                        {brands.map((brand) => (
+                          <option key={brand.id} value={brand.id}>
+                            {brand.name}
+                          </option>
+                        ))}
+                      </select>
+                      {!formData.brand_id && (
+                        <p className="text-xs text-amber-600 mt-1">⚠️ Brand selection is required</p>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Step 4: Expiry Date */}
+              <div className="border-l-4 border-primary pl-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white font-bold text-sm">
+                    4
                   </div>
                   <h3 className="text-base font-semibold text-gray-900">Set Expiry Date</h3>
                 </div>
@@ -290,7 +392,7 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
               </div>
 
               {/* Summary Box */}
-              {formData.product_id && formData.expire_at && (
+              {((offerType === "product" && formData.product_id) || (offerType === "brand" && formData.brand_id)) && formData.expire_at && (
                 <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="flex items-center justify-center w-6 h-6 rounded-full bg-green-500 text-white">
@@ -301,7 +403,7 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
                     <h4 className="text-sm font-semibold text-gray-900">Ready to Create</h4>
                   </div>
                   <p className="text-xs text-gray-600 ml-8">
-                    All required fields are complete. Click "Create Offer" to activate this offer.
+                    All required fields are complete. Click "{offer ? 'Update' : 'Create'} Offer" to {offer ? 'update' : 'activate'} this offer.
                   </p>
                 </div>
               )}

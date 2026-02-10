@@ -12,6 +12,7 @@ const ProductModal = ({ product, isOpen, onClose, onSave }) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
+    cost: "",
     price: "",
     stock_level: "",
     category_id: "",
@@ -50,6 +51,7 @@ const ProductModal = ({ product, isOpen, onClose, onSave }) => {
     if (product) {
       setFormData({
         name: product.name || "",
+        cost: product.cost || "",
         price: product.price || "",
         stock_level: product.stock_level || "",
         category_id: product.categorie_id || "", // Database uses 'categorie_id' not 'category_id'
@@ -63,6 +65,7 @@ const ProductModal = ({ product, isOpen, onClose, onSave }) => {
     } else {
       setFormData({
         name: "",
+        cost: "",
         price: "",
         stock_level: "",
         category_id: "",
@@ -93,6 +96,7 @@ const ProductModal = ({ product, isOpen, onClose, onSave }) => {
   const handleClose = () => {
     setFormData({
       name: "",
+      cost: "",
       price: "",
       stock_level: "",
       category_id: "",
@@ -174,6 +178,7 @@ const ProductModal = ({ product, isOpen, onClose, onSave }) => {
       const productData = {
         name: formData.name,
         description: formData.description,
+        cost: formData.cost ? parseFloat(formData.cost) : null,
         price: parseFloat(formData.price),
         stock_level: parseInt(formData.stock_level) || 0,
         categorie_id: formData.category_id, // Database column is 'categorie_id' not 'category_id'
@@ -287,6 +292,22 @@ const ProductModal = ({ product, isOpen, onClose, onSave }) => {
                 className="w-full border border-gray-300 rounded-md p-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="Enter product name"
                 required
+              />
+            </div>
+
+            {/* Cost */}
+            <div>
+              <label className="block mb-1 text-sm font-medium text-gray-700">
+                Cost (MVR)
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                name="cost"
+                value={formData.cost}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-md p-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                placeholder="0.00"
               />
             </div>
 
