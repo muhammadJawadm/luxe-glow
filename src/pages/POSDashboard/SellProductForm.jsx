@@ -52,10 +52,10 @@ const SellProductForm = ({ product, onSell }) => {
         const grandTotal = subtotal + taxAmount;
 
         return {
-            discountAmount: discountAmount.toFixed(2),
-            subtotal: subtotal.toFixed(2),
-            taxAmount: taxAmount.toFixed(2),
-            grandTotal: grandTotal.toFixed(2)
+            discountAmount: Math.floor(discountAmount),
+            subtotal: Math.floor(subtotal),
+            taxAmount: Math.floor(taxAmount),
+            grandTotal: Math.floor(grandTotal)
         };
     };
 
