@@ -3,6 +3,9 @@ import { Link } from "react-router-dom";
 import Header from "../layouts/partials/header";
 import { FaUsers } from "react-icons/fa";
 import ChartOne from "../components/ChartOne";
+import SalesReportCard from "../components/SalesReportCard";
+import InventoryStockCard from "../components/InventoryStockCard";
+import TopSellingProducts from "../components/TopSellingProducts";
 import {
   MdCategory,
   MdContentCopy,
@@ -161,9 +164,26 @@ const Home = () => {
             />
           </div>
 
-          {/* Charts Section */}
+          {/* Reports Section */}
           <div className="mt-6 md:mt-8">
-            <ChartOne />
+            <div className="grid grid-cols-1 gap-6">
+              {/* Sales Report */}
+              <SalesReportCard />
+
+              {/* Layout for Inventory and Growth Chart */}
+              {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"> */}
+              {/* Inventory Stock Report */}
+              <InventoryStockCard />
+
+              {/* Top Selling Products Card */}
+              {/* <div className="col-span-12 lg:col-span-12 rounded-xl bg-white p-6 shadow-xl"> */}
+              <TopSellingProducts />
+              {/* </div> */}
+              {/* </div> */}
+
+              {/* Growth Overview Chart */}
+              <ChartOne />
+            </div>
           </div>
         </div>
       </div>

@@ -12,4 +12,6 @@ export const deleteOrder = (orderId) => ordersService.deleteById(orderId)
 
 export const updateOrder = (orderId, updatedData) => ordersService.updateById(orderId, updatedData)
 
+export const updateOrderStatus = (orderId, status) => ordersService.updateById(orderId, { status })
+
 export const createOrder = (orderData) => ordersService.create(orderData)

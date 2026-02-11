@@ -1,20 +1,24 @@
 import React, { useEffect, useState } from "react";
 import Header from "../../layouts/partials/header";
-import { FiEdit, FiPlus, FiSearch, FiTrash2, FiPackage, FiShoppingCart, FiCalendar } from "react-icons/fi";
+import { FiEdit, FiPlus, FiSearch, FiTrash2, FiPackage, FiShoppingCart, FiCalendar, FiRefreshCw } from "react-icons/fi";
 import DeleteModal from "../../components/Modals/DeleteModal";
 import OrderedProductModal from "../../components/Modals/OrderedProductModal";
+import StatusUpdateModal from "../../components/Modals/StatusUpdateModal";
 import {
     fetchOrderedProducts,
     createOrderedProduct,
     updateOrderedProduct,
     deleteOrderedProduct,
 } from "../../services/orderedProductsServices";
+import { updateOrderStatus } from "../../services/orderServices";
 import Pagination from "../../components/Pagination";
 
 const OrderedProducts = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedOrderedProduct, setSelectedOrderedProduct] = useState(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+    const [selectedOrder, setSelectedOrder] = useState(null);
     const [orderedProductsData, setOrderedProductsData] = useState([]);
     const [filteredOrderedProducts, setFilteredOrderedProducts] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
@@ -106,6 +110,27 @@ const OrderedProducts = () => {
         } catch (error) {
             console.error("Error deleting ordered product:", error);
             alert("Failed to delete ordered product. Please try again.");
+        }
+    };
+
+    const handleStatusClick = (item) => {
+        setSelectedOrder({
+            id: item.order_id,
+            status: item.orders?.status || "pending"
+        });
+        setIsStatusModalOpen(true);
+    };
+
+    const handleStatusUpdate = async (orderId, newStatus) => {
+        try {
+            await updateOrderStatus(orderId, newStatus);
+            alert("Order status updated successfully!");
+            await fetchOrderedProductsData();
+            setIsStatusModalOpen(false);
+            setSelectedOrder(null);
+        } catch (error) {
+            console.error("Error updating order status:", error);
+            throw error;
         }
     };
 
@@ -209,7 +234,7 @@ const OrderedProducts = () => {
                                             >
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="flex items-center gap-2">
-                                                        <FiShoppingCart className="text-primary" />
+
                                                         <span className="text-sm font-medium text-gray-900">
                                                             #{item.order_id}
                                                         </span>
@@ -238,11 +263,11 @@ const OrderedProducts = () => {
                                                         {item.orders?.users?.email || ""}
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                <td className="px-2 py-4 whitespace-nowrap">
                                                     <span
-                                                        className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${item.orders?.status === "completed"
+                                                        className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${item.orders?.status === "completed" || item.orders?.status === "shipped" || item.orders?.status === "delivered"
                                                             ? "bg-green-100 text-green-800"
-                                                            : item.orders?.status === "pending"
+                                                            : item.orders?.status === "pending" || item.orders?.status === "processing"
                                                                 ? "bg-yellow-100 text-yellow-800"
                                                                 : "bg-gray-100 text-gray-800"
                                                             }`}
@@ -250,7 +275,7 @@ const OrderedProducts = () => {
                                                         {item.orders?.status || "N/A"}
                                                     </span>
                                                 </td>
-                                                <td className="px-4 py-4 whitespace-nowrap">
+                                                <td className="px-2 py-4 whitespace-nowrap">
                                                     <div className="flex items-center gap-2 text-sm text-gray-500">
                                                         <FiCalendar className="text-gray-400" />
                                                         {formatDate(item.created_at)}
@@ -264,6 +289,13 @@ const OrderedProducts = () => {
                                                             title="Edit"
                                                         >
                                                             <FiEdit className="text-lg" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleStatusClick(item)}
+                                                            className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-md transition-colors"
+                                                            title="Update Status"
+                                                        >
+                                                            <FiRefreshCw className="text-lg" />
                                                         </button>
                                                         <button
                                                             onClick={() => handleDeleteClick(item)}
@@ -293,6 +325,18 @@ const OrderedProducts = () => {
                 }}
                 orderedProduct={selectedOrderedProduct}
                 onSave={handleSave}
+            />
+
+            {/* Status Update Modal */}
+            <StatusUpdateModal
+                isOpen={isStatusModalOpen}
+                onClose={() => {
+                    setIsStatusModalOpen(false);
+                    setSelectedOrder(null);
+                }}
+                currentStatus={selectedOrder?.status}
+                orderId={selectedOrder?.id}
+                onSave={handleStatusUpdate}
             />
 
             {/* Delete Confirmation Modal */}
