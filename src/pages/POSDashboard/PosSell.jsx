@@ -54,7 +54,7 @@ const PosSell = () => {
             // 1. Save invoice to database
             const invoiceData = {
                 product_id: selectedProduct.id,
-                final_price: data.finalPrice,
+                final_price: data.grandTotal,
                 discount: data.discount || 0,
                 quantity: data.quantity
             };
@@ -78,8 +78,12 @@ const PosSell = () => {
                 quantity: data.quantity,
                 price: data.price,
                 discount: data.discount,
-                finalPrice: data.finalPrice,
-                invoiceId: invoiceId
+                subtotal: data.subtotal,
+                taxRate: data.taxRate,
+                taxAmount: data.taxAmount,
+                finalPrice: data.grandTotal,
+                invoiceId: invoiceId,
+                customerInfo: data.customerInfo || {}
             });
 
             const pdfFileName = generateInvoicePDF(pdfInvoiceData);
@@ -90,7 +94,7 @@ const PosSell = () => {
                 `Invoice ID: ${invoiceId}\n` +
                 `Product: ${selectedProduct.name}\n` +
                 `Quantity: ${data.quantity} unit(s)\n` +
-                `Total Amount: MVR ${(data.finalPrice * data.quantity).toFixed(2)}\n` +
+                `Total Amount: MVR ${(data.grandTotal * data.quantity).toFixed(2)}\n` +
                 `${data.discount > 0 ? `Discount Applied: MVR ${(data.discount * data.quantity).toFixed(2)}\n` : ''}` +
                 `\nPDF Invoice: ${pdfFileName} has been downloaded.`
             );

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { fetchCheckoutConfig } from "../../services/checkoutConfigServices";
+import CustomerInfoModal from "../../components/CustomerInfoModal";
 
 const SellProductForm = ({ product, onSell }) => {
     const [price, setPrice] = useState("");
@@ -10,6 +11,7 @@ const SellProductForm = ({ product, onSell }) => {
     const [discountValue, setDiscountValue] = useState(0);
     const [taxRate, setTaxRate] = useState(0); // Tax rate from checkout_configs
     const [loadingTax, setLoadingTax] = useState(true);
+    const [showCustomerModal, setShowCustomerModal] = useState(false);
 
 
     // Fetch tax rate from checkout config
@@ -52,10 +54,10 @@ const SellProductForm = ({ product, onSell }) => {
         const grandTotal = subtotal + taxAmount;
 
         return {
-            discountAmount: Math.floor(discountAmount),
-            subtotal: Math.floor(subtotal),
-            taxAmount: Math.floor(taxAmount),
-            grandTotal: Math.floor(grandTotal)
+            discountAmount: parseFloat(discountAmount.toFixed(2)),
+            subtotal: parseFloat(subtotal.toFixed(2)),
+            taxAmount: parseFloat(taxAmount.toFixed(2)),
+            grandTotal: parseFloat(grandTotal.toFixed(2))
         };
     };
 
@@ -70,6 +72,11 @@ const SellProductForm = ({ product, onSell }) => {
             return;
         }
 
+        // Show customer info modal instead of directly submitting
+        setShowCustomerModal(true);
+    };
+
+    const handleCustomerInfoSubmit = (customerInfo) => {
         onSell({
             productId: product.id,
             name: product.name,
@@ -82,215 +89,224 @@ const SellProductForm = ({ product, onSell }) => {
             condition,
             quantity,
             shippingOption,
+            customerInfo: customerInfo
         });
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Product Name
-                    </label>
-                    <input
-                        type="text"
-                        value={product.name}
-                        readOnly
-                        className="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2.5 text-gray-600"
-                    />
-                </div>
+        <>
+            <CustomerInfoModal
+                isOpen={showCustomerModal}
+                onClose={() => setShowCustomerModal(false)}
+                onSubmit={handleCustomerInfoSubmit}
+            />
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Price (MVR)
-                    </label>
-                    <div className="relative">
-                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                            MVR
-                        </span>
+            <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Product Name
+                        </label>
                         <input
-                            type="number"
-                            value={price}
-                            onChange={(e) => setPrice(e.target.value)}
-                            className="w-full pl-16 border border-gray-200 rounded px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                            placeholder="0.00"
-                            min="0"
-                            step="0.01"
-                            required
+                            type="text"
+                            value={product.name}
+                            readOnly
+                            className="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2.5 text-gray-600"
                         />
                     </div>
-                </div>
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Available Stock
-                    </label>
-                    <input
-                        type="text"
-                        value={`${product.stock_level || 0} units`}
-                        readOnly
-                        className="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2.5 text-gray-600"
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Condition
-                    </label>
-                    <select
-                        value={condition}
-                        onChange={(e) => setCondition(e.target.value)}
-                        className="w-full border border-gray-200 rounded px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                    >
-                        <option value="new">New</option>
-                        <option value="used-like-new">Used - Like New</option>
-                        <option value="used-good">Used - Good</option>
-                        <option value="used-fair">Used - Fair</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Quantity (Max: {product.stock_level || 0})
-                    </label>
-                    <div className="flex border border-gray-200 rounded overflow-hidden">
-                        <button
-                            type="button"
-                            onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                            className="px-3 py-2 bg-gray-100 text-gray-600 hover:bg-gray-200"
-                        >
-                            -
-                        </button>
-                        <input
-                            type="number"
-                            value={quantity}
-                            onChange={(e) =>
-                                setQuantity(Math.max(1, Math.min(product.stock_level || 1, parseInt(e.target.value) || 1)))
-                            }
-                            className="w-16 text-center border-x border-gray-200"
-                            min="1"
-                            max={product.stock_level || 1}
-                        />
-                        <button
-                            type="button"
-                            onClick={() => setQuantity(Math.min(product.stock_level || 1, quantity + 1))}
-                            className="px-3 py-2 bg-gray-100 text-gray-600 hover:bg-gray-200"
-                            disabled={quantity >= (product.stock_level || 0)}
-                        >
-                            +
-                        </button>
-                    </div>
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Shipping Options
-                    </label>
-                    <select
-                        value={shippingOption}
-                        onChange={(e) => setShippingOption(e.target.value)}
-                        className="w-full border border-gray-200 rounded px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                    >
-                        <option value="standard">Standard Shipping</option>
-                        <option value="expedited">Expedited Shipping</option>
-                        <option value="pickup">Local Pickup</option>
-                    </select>
-                </div>
-            </div>
-
-            {/* Discount Section */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-100">
-                <h3 className="text-sm font-semibold text-gray-800 mb-4">Discount & Pricing</h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Discount Type
+                            Price (MVR)
+                        </label>
+                        <div className="relative">
+                            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                                MVR
+                            </span>
+                            <input
+                                type="number"
+                                value={price}
+                                onChange={(e) => setPrice(e.target.value)}
+                                className="w-full pl-16 border border-gray-200 rounded px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Available Stock
+                        </label>
+                        <input
+                            type="text"
+                            value={`${product.stock_level || 0} units`}
+                            readOnly
+                            className="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2.5 text-gray-600"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Condition
                         </label>
                         <select
-                            value={discountType}
-                            onChange={(e) => setDiscountType(e.target.value)}
-                            className="w-full border border-gray-200 rounded px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                            value={condition}
+                            onChange={(e) => setCondition(e.target.value)}
+                            className="w-full border border-gray-200 rounded px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                         >
-                            <option value="percentage">Percentage (%)</option>
-                            <option value="fixed">Fixed Amount (MVR)</option>
+                            <option value="new">New</option>
+                            <option value="used-like-new">Used - Like New</option>
+                            <option value="used-good">Used - Good</option>
+                            <option value="used-fair">Used - Fair</option>
                         </select>
                     </div>
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Discount Value
+                            Quantity (Max: {product.stock_level || 0})
                         </label>
-                        <div className="relative">
-                            {discountType === "percentage" && (
-                                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                                    %
-                                </span>
-                            )}
-                            {discountType === "fixed" && (
-                                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                                    MVR
-                                </span>
-                            )}
+                        <div className="flex border border-gray-200 rounded overflow-hidden">
+                            <button
+                                type="button"
+                                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                className="px-3 py-2 bg-gray-100 text-gray-600 hover:bg-gray-200"
+                            >
+                                -
+                            </button>
                             <input
                                 type="number"
-                                value={discountValue}
-                                onChange={(e) => setDiscountValue(e.target.value)}
-                                className={`w-full border border-gray-200 rounded px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all ${discountType === "fixed" ? "pl-16" : "pr-8"
-                                    }`}
-                                placeholder="0"
-                                min="0"
-                                max={discountType === "percentage" ? "100" : price}
-                                step={discountType === "percentage" ? "1" : "0.01"}
+                                value={quantity}
+                                onChange={(e) =>
+                                    setQuantity(Math.max(1, Math.min(product.stock_level || 1, parseInt(e.target.value) || 1)))
+                                }
+                                className="w-16 text-center border-x border-gray-200"
+                                min="1"
+                                max={product.stock_level || 1}
                             />
+                            <button
+                                type="button"
+                                onClick={() => setQuantity(Math.min(product.stock_level || 1, quantity + 1))}
+                                className="px-3 py-2 bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                disabled={quantity >= (product.stock_level || 0)}
+                            >
+                                +
+                            </button>
                         </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Shipping Options
+                        </label>
+                        <select
+                            value={shippingOption}
+                            onChange={(e) => setShippingOption(e.target.value)}
+                            className="w-full border border-gray-200 rounded px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                        >
+                            <option value="standard">Standard Shipping</option>
+                            <option value="expedited">Expedited Shipping</option>
+                            <option value="pickup">Local Pickup</option>
+                        </select>
                     </div>
                 </div>
 
-                {/* Price Summary */}
-                <div className="mt-6 space-y-2 bg-white p-4 rounded border border-gray-200">
-                    <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Original Price:</span>
-                        <span className="font-medium">MVR {parseFloat(price || 0).toFixed(2)}</span>
+                {/* Discount Section */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-100">
+                    <h3 className="text-sm font-semibold text-gray-800 mb-4">Discount & Pricing</h3>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Discount Type
+                            </label>
+                            <select
+                                value={discountType}
+                                onChange={(e) => setDiscountType(e.target.value)}
+                                className="w-full border border-gray-200 rounded px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                            >
+                                <option value="percentage">Percentage (%)</option>
+                                <option value="fixed">Fixed Amount (MVR)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Discount Value
+                            </label>
+                            <div className="relative">
+                                {discountType === "percentage" && (
+                                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                                        %
+                                    </span>
+                                )}
+                                {discountType === "fixed" && (
+                                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                                        MVR
+                                    </span>
+                                )}
+                                <input
+                                    type="number"
+                                    value={discountValue}
+                                    onChange={(e) => setDiscountValue(e.target.value)}
+                                    className={`w-full border border-gray-200 rounded px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all ${discountType === "fixed" ? "pl-16" : "pr-8"
+                                        }`}
+                                    placeholder="0"
+                                    min="0"
+                                    max={discountType === "percentage" ? "100" : price}
+                                    step={discountType === "percentage" ? "1" : "0.01"}
+                                />
+                            </div>
+                        </div>
                     </div>
-                    {parseFloat(discountAmount) > 0 && (
+
+                    {/* Price Summary */}
+                    <div className="mt-6 space-y-2 bg-white p-4 rounded border border-gray-200">
                         <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Discount:</span>
-                            <span className="font-medium text-red-600">-MVR {discountAmount}</span>
+                            <span className="text-gray-600">Original Price:</span>
+                            <span className="font-medium">MVR {parseFloat(price || 0).toFixed(2)}</span>
                         </div>
-                    )}
-                    <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Subtotal (after discount):</span>
-                        <span className="font-medium">MVR {subtotal}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Tax ({taxRate}%):</span>
-                        <span className="font-medium text-blue-600">+MVR {taxAmount}</span>
-                    </div>
-                    <div className="border-t border-gray-200 pt-2 mt-2">
-                        <div className="flex justify-between">
-                            <span className="font-semibold text-gray-800">Price per Unit (inc. tax):</span>
-                            <span className="font-bold text-lg text-primary">MVR {grandTotal}</span>
+                        {parseFloat(discountAmount) > 0 && (
+                            <div className="flex justify-between text-sm">
+                                <span className="text-gray-600">Discount:</span>
+                                <span className="font-medium text-red-600">-MVR {discountAmount}</span>
+                            </div>
+                        )}
+                        <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Subtotal (after discount):</span>
+                            <span className="font-medium">MVR {subtotal}</span>
                         </div>
-                    </div>
-                    <div className="border-t border-gray-200 pt-2 mt-2">
-                        <div className="flex justify-between">
-                            <span className="font-semibold text-gray-800">Total Amount ({quantity} unit{quantity > 1 ? 's' : ''}):</span>
-                            <span className="font-bold text-xl text-green-600">MVR {(parseFloat(grandTotal) * quantity).toFixed(2)}</span>
+                        <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Tax ({taxRate}%):</span>
+                            <span className="font-medium text-blue-600">+MVR {taxAmount}</span>
+                        </div>
+                        <div className="border-t border-gray-200 pt-2 mt-2">
+                            <div className="flex justify-between">
+                                <span className="font-semibold text-gray-800">Price per Unit (inc. tax):</span>
+                                <span className="font-bold text-lg text-primary">MVR {grandTotal}</span>
+                            </div>
+                        </div>
+                        <div className="border-t border-gray-200 pt-2 mt-2">
+                            <div className="flex justify-between">
+                                <span className="font-semibold text-gray-800">Total Amount ({quantity} unit{quantity > 1 ? 's' : ''}):</span>
+                                <span className="font-bold text-xl text-green-600">MVR {(parseFloat(grandTotal) * quantity).toFixed(2)}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div className="pt-4">
-                <button
-                    type="submit"
-                    className="w-full md:w-auto px-8 py-3 bg-primary text-white font-semibold rounded-lg shadow-md hover:bg-primary/90 transition-all transform hover:scale-105"
-                >
-                    Complete Sale & Generate Invoice
-                </button>
-            </div>
-        </form>
+                <div className="pt-4">
+                    <button
+                        type="submit"
+                        className="w-full md:w-auto px-8 py-3 bg-primary text-white font-semibold rounded-lg shadow-md hover:bg-primary/90 transition-all transform hover:scale-105"
+                    >
+                        Complete Sale & Generate Invoice
+                    </button>
+                </div>
+            </form>
+        </>
     );
 };
 

@@ -7,7 +7,10 @@ import { jsPDF } from "jspdf";
  * @param {number} invoiceData.quantity - Quantity sold
  * @param {number} invoiceData.originalPrice - Original product price
  * @param {number} invoiceData.discount - Discount amount
- * @param {number} invoiceData.finalPrice - Final price after discount
+ * @param {number} invoiceData.subtotal - Subtotal after discount
+ * @param {number} invoiceData.taxRate - Tax rate percentage
+ * @param {number} invoiceData.taxAmount - Tax amount
+ * @param {number} invoiceData.finalPrice - Final price after discount and tax
  * @param {number} invoiceData.invoiceId - Invoice ID from database
  */
 export const generateInvoicePDF = (invoiceData) => {
@@ -16,155 +19,178 @@ export const generateInvoicePDF = (invoiceData) => {
         quantity,
         originalPrice,
         discount = 0,
+        subtotal = 0,
+        taxRate = 0,
+        taxAmount = 0,
         finalPrice,
         invoiceId,
+        customerInfo = {}
     } = invoiceData;
 
     // Create new PDF document
     const doc = new jsPDF();
 
     const pageWidth = doc.internal.pageSize.getWidth();
-    const margin = 20;
-    let yPosition = 20;
+    const margin = 15;
+    let yPosition = 15;
 
-    // Company Header
-    doc.setFontSize(24);
+    // Store Information (Left Side)
+    doc.setFontSize(12);
     doc.setFont(undefined, 'bold');
-    doc.text("LUXE GLOW MV", pageWidth / 2, yPosition, { align: "center" });
-    yPosition += 10;
+    doc.text("LUXE GLOW", margin, yPosition);
+    yPosition += 5;
 
-    doc.setFontSize(10);
+    doc.setFontSize(9);
     doc.setFont(undefined, 'normal');
-    doc.text("Premium Beauty & Cosmetics", pageWidth / 2, yPosition, { align: "center" });
-    yPosition += 15;
+    doc.text("M. Luxe Glow House", margin, yPosition);
+    yPosition += 4;
+    doc.text("ABC ", margin, yPosition);
+    yPosition += 4;
+    doc.text("Phone No. 3322261", margin, yPosition);
+    yPosition += 4;
+    doc.text("TIN: 1234560GST501", margin, yPosition);
 
-    // Draw line separator
-    doc.setLineWidth(0.5);
-    doc.line(margin, yPosition, pageWidth - margin, yPosition);
-    yPosition += 10;
+    // Invoice Details (Right Side)
+    yPosition = 15;
+    const rightX = pageWidth - margin - 60;
 
-    // Invoice Title
-    doc.setFontSize(18);
-    doc.setFont(undefined, 'bold');
-    doc.text("SALES INVOICE", pageWidth / 2, yPosition, { align: "center" });
-    yPosition += 15;
-
-    // Invoice Details
-    doc.setFontSize(10);
-    doc.setFont(undefined, 'normal');
-
-    const invoiceDate = new Date().toLocaleDateString('en-US', {
+    doc.setFontSize(9);
+    const invoiceDate = new Date().toLocaleDateString('en-GB', {
         year: 'numeric',
         month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+        day: 'numeric'
     });
 
-    doc.text(`Invoice #: INV-${invoiceId}`, margin, yPosition);
-    yPosition += 6;
-    doc.text(`Date: ${invoiceDate}`, margin, yPosition);
-    yPosition += 15;
+    doc.text(`Date: ${invoiceDate}`, rightX, yPosition);
+    yPosition += 4;
+    doc.text(`Invoice No.: INV${new Date().getFullYear()}/${String(invoiceId).padStart(3, '0')}`, rightX, yPosition);
 
-    // Product Details Section
-    doc.setFontSize(12);
+    // Title
+    yPosition = 45;
+    doc.setFontSize(16);
     doc.setFont(undefined, 'bold');
-    doc.text("Product Details", margin, yPosition);
-    yPosition += 8;
+    doc.text("TAX INVOICE", pageWidth / 2, yPosition, { align: "center" });
 
-    // Product table header
+    // Customer Section
+    yPosition = 60;
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'bold');
+    doc.text("Customer:", margin, yPosition);
+    yPosition += 5;
+
+    doc.setFontSize(9);
+    doc.setFont(undefined, 'normal');
+
+    if (customerInfo.name) {
+        doc.text(customerInfo.name, margin, yPosition);
+        yPosition += 4;
+    } else {
+        doc.text("Walk-in Customer", margin, yPosition);
+        yPosition += 4;
+    }
+
+    if (customerInfo.address) {
+        doc.text(customerInfo.address, margin, yPosition);
+        yPosition += 4;
+    }
+
+    if (customerInfo.phone) {
+        doc.text(`Phone: ${customerInfo.phone}`, margin, yPosition);
+        yPosition += 4;
+    }
+
+    if (customerInfo.tin) {
+        doc.text(`TIN: ${customerInfo.tin}`, margin, yPosition);
+        yPosition += 4;
+    }
+
+    yPosition += 5;
+
+    // Product Table
+    const tableStartY = yPosition;
+    const col1X = margin;
+    const col2X = margin + 15;
+    const col3X = margin + 75;
+    const col4X = margin + 105;
+    const col5X = margin + 135;
+    const col6X = margin + 165;
+
+    // Table Header
     doc.setFillColor(240, 240, 240);
-    doc.rect(margin, yPosition, pageWidth - 2 * margin, 8, 'F');
+    doc.rect(margin, yPosition, pageWidth - 2 * margin, 7, 'F');
 
     doc.setFontSize(9);
     doc.setFont(undefined, 'bold');
-    doc.text("Product Name", margin + 2, yPosition + 5);
-    doc.text("Qty", pageWidth - 80, yPosition + 5);
-    doc.text("Unit Price", pageWidth - 60, yPosition + 5);
-    doc.text("Amount", pageWidth - margin - 2, yPosition + 5, { align: "right" });
-    yPosition += 8;
+    doc.text("QTY", col1X + 2, yPosition + 5);
+    doc.text("Details", col2X + 2, yPosition + 5);
+    doc.text("Unit Price", col3X + 2, yPosition + 5);
+    doc.text("Price", col4X + 2, yPosition + 5);
+    doc.text("GST", col5X + 2, yPosition + 5);
+    doc.text("Total", col6X + 2, yPosition + 5);
 
-    // Product row
+    // Draw table header border
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.3);
+    doc.rect(margin, yPosition, pageWidth - 2 * margin, 7);
+
+    yPosition += 7;
+
+    // Product Row
     doc.setFont(undefined, 'normal');
+    const rowHeight = 10;
+
+    const itemSubtotal = originalPrice * quantity;
+    const itemGST = taxAmount * quantity;
+    const itemTotal = finalPrice * quantity;
+
+    doc.text(quantity.toString(), col1X + 2, yPosition + 5);
+    doc.text(product.name || "Product", col2X + 2, yPosition + 5);
+    doc.text(originalPrice.toFixed(2), col3X + 2, yPosition + 5);
+    doc.text(itemSubtotal.toFixed(2), col4X + 2, yPosition + 5);
+    doc.text(itemGST.toFixed(2), col5X + 2, yPosition + 5);
+    doc.text(itemTotal.toFixed(2), col6X + 2, yPosition + 5);
+
+    // Draw product row border
+    doc.rect(margin, yPosition, pageWidth - 2 * margin, rowHeight);
+
+    yPosition += rowHeight + 10;
+
+    // Summary Section (Right Aligned)
+    const summaryX = pageWidth - 60;
+    const summaryLabelX = pageWidth - 90;
+
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+
+    // Subtotal
+    doc.text("Sub Total", summaryLabelX, yPosition, { align: "right" });
+    doc.text(itemSubtotal.toFixed(2), summaryX, yPosition, { align: "right" });
     yPosition += 5;
-    doc.text(product.name || "Product", margin + 2, yPosition);
-    doc.text(quantity.toString(), pageWidth - 80, yPosition);
-    doc.text(`MVR ${originalPrice.toFixed(2)}`, pageWidth - 60, yPosition);
-    doc.text(`MVR ${(originalPrice * quantity).toFixed(2)}`, pageWidth - margin - 2, yPosition, { align: "right" });
-    yPosition += 8;
 
-    // Draw line
-    doc.setLineWidth(0.2);
-    doc.line(margin, yPosition, pageWidth - margin, yPosition);
-    yPosition += 8;
+    // GST
+    doc.text(`GST (${taxRate}%)`, summaryLabelX, yPosition, { align: "right" });
+    doc.text(itemGST.toFixed(2), summaryX, yPosition, { align: "right" });
+    yPosition += 5;
 
-    // Price Breakdown
-    const breakdownX = pageWidth - 80;
-
-    doc.setFont(undefined, 'normal');
-    doc.text("Subtotal:", breakdownX, yPosition);
-    doc.text(`MVR ${(originalPrice * quantity).toFixed(2)}`, pageWidth - margin - 2, yPosition, { align: "right" });
-    yPosition += 6;
-
+    // Discount (if applicable)
     if (discount > 0) {
-        doc.setTextColor(220, 38, 38); // Red color for discount
-        doc.text("Discount:", breakdownX, yPosition);
-        doc.text(`-MVR ${(discount * quantity).toFixed(2)}`, pageWidth - margin - 2, yPosition, { align: "right" });
-        doc.setTextColor(0, 0, 0); // Reset to black
-        yPosition += 6;
+        const totalDiscount = discount * quantity;
+        doc.text("Discount", summaryLabelX, yPosition, { align: "right" });
+        doc.text(`-${totalDiscount.toFixed(2)}`, summaryX, yPosition, { align: "right" });
+        yPosition += 5;
     }
-
-    // Draw line before total
-    doc.setLineWidth(0.5);
-    doc.line(breakdownX - 5, yPosition, pageWidth - margin, yPosition);
-    yPosition += 8;
 
     // Total
-    doc.setFontSize(12);
     doc.setFont(undefined, 'bold');
-    doc.text("TOTAL:", breakdownX, yPosition);
-    doc.text(`MVR ${(finalPrice * quantity).toFixed(2)}`, pageWidth - margin - 2, yPosition, { align: "right" });
-    yPosition += 15;
-
-    // Product Info Box (if available)
-    if (product.brands?.name || product.categories?.name) {
-        doc.setFontSize(9);
-        doc.setFont(undefined, 'normal');
-        doc.setDrawColor(200, 200, 200);
-        doc.setLineWidth(0.3);
-        doc.rect(margin, yPosition, pageWidth - 2 * margin, 20);
-
-        yPosition += 5;
-        doc.setFont(undefined, 'bold');
-        doc.text("Product Information:", margin + 2, yPosition);
-        yPosition += 5;
-
-        doc.setFont(undefined, 'normal');
-        if (product.brands?.name) {
-            doc.text(`Brand: ${product.brands.name}`, margin + 2, yPosition);
-            yPosition += 4;
-        }
-        if (product.categories?.name) {
-            doc.text(`Category: ${product.categories.name}`, margin + 2, yPosition);
-            yPosition += 4;
-        }
-        if (product.description) {
-            doc.text(`Description: ${product.description.substring(0, 60)}${product.description.length > 60 ? '...' : ''}`, margin + 2, yPosition);
-        }
-        yPosition += 15;
-    }
+    doc.text("Total", summaryLabelX, yPosition, { align: "right" });
+    doc.text(itemTotal.toFixed(2), summaryX, yPosition, { align: "right" });
 
     // Footer
-    yPosition = doc.internal.pageSize.getHeight() - 30;
-    doc.setLineWidth(0.5);
-    doc.line(margin, yPosition, pageWidth - margin, yPosition);
-    yPosition += 8;
-
-    doc.setFontSize(9);
+    yPosition = doc.internal.pageSize.getHeight() - 20;
+    doc.setFontSize(8);
     doc.setFont(undefined, 'italic');
     doc.text("Thank you for your purchase!", pageWidth / 2, yPosition, { align: "center" });
-    yPosition += 5;
-    doc.setFontSize(8);
+    yPosition += 4;
     doc.text("Luxe Glow MV - Your Beauty, Our Priority", pageWidth / 2, yPosition, { align: "center" });
 
     // Save the PDF
@@ -185,8 +211,12 @@ export const prepareInvoiceData = (params) => {
         quantity,
         price,
         discount,
+        subtotal,
+        taxRate,
+        taxAmount,
         finalPrice,
-        invoiceId
+        invoiceId,
+        customerInfo
     } = params;
 
     return {
@@ -194,7 +224,11 @@ export const prepareInvoiceData = (params) => {
         quantity,
         originalPrice: price,
         discount: discount || 0,
+        subtotal: subtotal || 0,
+        taxRate: taxRate || 0,
+        taxAmount: taxAmount || 0,
         finalPrice,
-        invoiceId
+        invoiceId,
+        customerInfo: customerInfo || {}
     };
 };
