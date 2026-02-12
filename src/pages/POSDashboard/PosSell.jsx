@@ -92,6 +92,9 @@ const PosSell = () => {
             alert(
                 `Sale completed successfully!\n\n` +
                 `Invoice ID: ${invoiceId}\n` +
+                `Customer Name: ${data.customerInfo.name}\n` +
+                `Customer Phone: ${data.customerInfo.phone}\n` +
+                `Customer Address: ${data.customerInfo.address}\n` +
                 `Product: ${selectedProduct.name}\n` +
                 `Quantity: ${data.quantity} unit(s)\n` +
                 `Total Amount: MVR ${(data.grandTotal * data.quantity).toFixed(2)}\n` +
