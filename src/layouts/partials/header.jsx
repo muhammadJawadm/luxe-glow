@@ -3,7 +3,7 @@ import { PiBellLight } from "react-icons/pi";
 import { RiCloseFill } from "react-icons/ri";
 import { Link, useNavigate } from "react-router-dom";
 import { IoArrowBack } from "react-icons/io5";
-import { FiUser, FiLogOut, FiX, FiClock, FiBell } from "react-icons/fi";
+import { FiUser, FiLogOut, FiX, FiClock, FiBell, FiCheck } from "react-icons/fi";
 import { getCurrentUser, logout } from "../../services/authService";
 import { fetchNotifications } from "../../services/notificationServices";
 
@@ -14,12 +14,14 @@ const Header = ({ header, link, arrow }) => {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [notificationsLoading, setNotificationsLoading] = useState(true);
+  const [readNotifications, setReadNotifications] = useState(new Set());
   const navigate = useNavigate();
 
   useEffect(() => {
     const user = getCurrentUser();
     setCurrentUser(user);
     loadNotifications();
+    loadReadNotifications();
   }, []);
 
   const loadNotifications = async () => {
@@ -33,6 +35,31 @@ const Header = ({ header, link, arrow }) => {
     } finally {
       setNotificationsLoading(false);
     }
+  };
+
+  const loadReadNotifications = () => {
+    const stored = localStorage.getItem('readNotifications');
+    if (stored) {
+      setReadNotifications(new Set(JSON.parse(stored)));
+    }
+  };
+
+  const markAsRead = (notificationId) => {
+    const updatedRead = new Set(readNotifications);
+    updatedRead.add(notificationId);
+    setReadNotifications(updatedRead);
+    localStorage.setItem('readNotifications', JSON.stringify([...updatedRead]));
+  };
+
+  const markAllAsRead = () => {
+    const allIds = notifications.map(n => n.id);
+    const updatedRead = new Set([...readNotifications, ...allIds]);
+    setReadNotifications(updatedRead);
+    localStorage.setItem('readNotifications', JSON.stringify([...updatedRead]));
+  };
+
+  const getUnreadCount = () => {
+    return notifications.filter(n => !readNotifications.has(n.id)).length;
   };
 
   // Helper function to format email into display name
@@ -81,9 +108,9 @@ const Header = ({ header, link, arrow }) => {
                   className="rounded-full drop-shadow-lg  flex justify-center items-center  mr-1 sm:mr-4 w-9 h-9 cursor-pointer hover:bg-gray-100 transition-colors relative"
                 >
                   <PiBellLight className="w-6 h-6" />
-                  {notifications.length > 0 && (
+                  {getUnreadCount() > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                      {notifications.length > 9 ? '9+' : notifications.length}
+                      {getUnreadCount() > 9 ? '9+' : getUnreadCount()}
                     </span>
                   )}
                 </div>
@@ -145,13 +172,30 @@ const Header = ({ header, link, arrow }) => {
               <h3 className="text-lg font-bold text-white flex items-center gap-2">
                 <FiBell className="text-xl" />
                 Notifications
+                {getUnreadCount() > 0 && (
+                  <span className="bg-white text-primary text-xs font-bold rounded-full px-2 py-0.5">
+                    {getUnreadCount()} new
+                  </span>
+                )}
               </h3>
-              <button
-                onClick={() => setShowMenue(false)}
-                className="text-white hover:text-gray-200 transition-colors"
-              >
-                <RiCloseFill className="text-2xl" />
-              </button>
+              <div className="flex items-center gap-2">
+                {getUnreadCount() > 0 && (
+                  <button
+                    onClick={markAllAsRead}
+                    className="text-white hover:text-gray-200 transition-colors text-sm flex items-center gap-1 bg-white/20 px-3 py-1 rounded-md"
+                    title="Mark all as read"
+                  >
+                    <FiCheck className="text-sm" />
+                    Mark all read
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowMenue(false)}
+                  className="text-white hover:text-gray-200 transition-colors"
+                >
+                  <RiCloseFill className="text-2xl" />
+                </button>
+              </div>
             </div>
 
             {/* Notification List */}
@@ -179,23 +223,32 @@ const Header = ({ header, link, arrow }) => {
                       minute: '2-digit'
                     });
 
+                    const isUnread = !readNotifications.has(notification.id);
+
                     return (
                       <div
                         key={notification.id}
-                        className="p-4 hover:bg-gray-50 transition-colors"
+                        onClick={() => markAsRead(notification.id)}
+                        className={`p-4 hover:bg-gray-50 transition-colors cursor-pointer ${isUnread ? 'bg-blue-50/50 border-l-4 border-primary' : ''
+                          }`}
                       >
                         <div className="flex items-start gap-3">
-                          {notification.image_url ? (
-                            <img
-                              src={notification.image_url}
-                              alt="Notification"
-                              className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                              <FiBell className="text-primary" />
-                            </div>
-                          )}
+                          <div className="relative">
+                            {notification.image_url ? (
+                              <img
+                                src={notification.image_url}
+                                alt="Notification"
+                                className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                <FiBell className="text-primary" />
+                              </div>
+                            )}
+                            {isUnread && (
+                              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 border-2 border-white rounded-full"></span>
+                            )}
+                          </div>
                           <div className="flex-1 min-w-0">
                             <h4 className="text-sm font-semibold text-gray-900 mb-1 line-clamp-1">
                               {notification.title}
