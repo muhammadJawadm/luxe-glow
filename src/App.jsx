@@ -16,18 +16,14 @@ import Payment from "./pages/Pyament/Payment";
 import Brand from "./pages/Brand/Brand";
 import Discount from "./pages/Discount/Discount";
 
-import Register from "./pages/POSDashboard/Register";
-import RegisterSessions from "./pages/POSDashboard/RegisterSessions";
-import PosBills from "./pages/POSDashboard/PosBills";
 import PosSell from "./pages/POSDashboard/PosSell";
-import PosPayment from "./pages/POSDashboard/PosPayment";
 
 import Notifications from "./pages/Notifications/Notifications";
 import Inventory from "./pages/Inventory/Inventory";
 import Cart from "./pages/Cart/Cart";
 import Rewards from "./pages/Rewards/Rewards";
 import ProtectedRoute from "./components/ProtectedRoute";
-
+import Report from "./pages/Report/Report";
 function App() {
   return (
     <Routes>
@@ -49,10 +45,6 @@ function App() {
         <Route path="/product" element={<Products />} />
 
         <Route path="/pos/sell" element={<PosSell />} />
-        <Route path="/pos/register" element={<Register />} />
-        <Route path="/pos/registerSession" element={<RegisterSessions />} />
-        <Route path="/pos/bills" element={<PosBills />} />
-        <Route path="/pos/payments" element={<PosPayment />} />
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/order" element={<Orders />} />
         <Route path="/cart" element={<Cart />} />
@@ -65,6 +57,7 @@ function App() {
         <Route path="/payment" element={<Payment />} />
         <Route path="/content" element={<Content />} />
         <Route path="/discount" element={<Discount />} />
+        <Route path="/reports" element={<Report />} />
       </Route>
 
       {/* Catch all - redirect to login */}

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Header from "../../layouts/partials/header";
-import { FiEdit, FiPlus, FiSearch, FiTrash2, FiPackage, FiShoppingCart, FiCalendar, FiRefreshCw } from "react-icons/fi";
+import { FiEdit, FiPlus, FiSearch, FiTrash2, FiPackage, FiShoppingCart, FiCalendar, FiRefreshCw, FiChevronDown, FiChevronRight } from "react-icons/fi";
 import DeleteModal from "../../components/Modals/DeleteModal";
 import OrderedProductModal from "../../components/Modals/OrderedProductModal";
 import StatusUpdateModal from "../../components/Modals/StatusUpdateModal";
@@ -21,6 +21,8 @@ const OrderedProducts = () => {
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [orderedProductsData, setOrderedProductsData] = useState([]);
     const [filteredOrderedProducts, setFilteredOrderedProducts] = useState([]);
+    const [groupedOrders, setGroupedOrders] = useState([]);
+    const [expandedOrders, setExpandedOrders] = useState(new Set());
     const [searchQuery, setSearchQuery] = useState("");
     const [loading, setLoading] = useState(true);
     const [orderedProductToDelete, setOrderedProductToDelete] = useState(null);
@@ -32,6 +34,32 @@ const OrderedProducts = () => {
         fetchOrderedProductsData();
     }, [currentPage]);
 
+    // Group ordered products by order_id
+    const groupProductsByOrder = (products) => {
+        const grouped = {};
+
+        products.forEach(product => {
+            const orderId = product.order_id;
+            if (!grouped[orderId]) {
+                grouped[orderId] = {
+                    orderId: orderId,
+                    orderInfo: product.orders,
+                    products: [],
+                    totalQuantity: 0,
+                    totalAmount: 0,
+                    createdAt: product.created_at,
+                    customer: product.orders?.users
+                };
+            }
+
+            grouped[orderId].products.push(product);
+            grouped[orderId].totalQuantity += product.quantity;
+            grouped[orderId].totalAmount += (product.products?.price || 0) * product.quantity;
+        });
+
+        return Object.values(grouped);
+    };
+
     const fetchOrderedProductsData = async () => {
         try {
             setLoading(true);
@@ -39,8 +67,9 @@ const OrderedProducts = () => {
             console.log("Fetched ordered products:", response);
             setOrderedProductsData(response.data || []);
             setFilteredOrderedProducts(response.data || []);
+            setGroupedOrders(groupProductsByOrder(response.data || []));
             setTotalItems(response.count || 0);
-            console.log("Fetched ordered products:", response);
+
         } catch (error) {
             console.error("Error fetching ordered products data:", error);
             alert("Failed to load ordered products. Please try again.");
@@ -53,23 +82,41 @@ const OrderedProducts = () => {
     useEffect(() => {
         if (searchQuery.trim() === "") {
             setFilteredOrderedProducts(orderedProductsData);
+            setGroupedOrders(groupProductsByOrder(orderedProductsData));
         } else {
             const filtered = orderedProductsData.filter(
                 (item) =>
                     item.products?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    item.order_id?.toString().includes(searchQuery)
+                    item.order_id?.toString().includes(searchQuery) ||
+                    item.orders?.users?.name?.toLowerCase().includes(searchQuery.toLowerCase())
             );
             setFilteredOrderedProducts(filtered);
+            setGroupedOrders(groupProductsByOrder(filtered));
         }
     }, [searchQuery, orderedProductsData]);
 
-    const handleEditClick = (orderedProduct) => {
-        setSelectedOrderedProduct(orderedProduct);
+    const toggleOrderExpansion = (orderId) => {
+        setExpandedOrders(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(orderId)) {
+                newSet.delete(orderId);
+            } else {
+                newSet.add(orderId);
+            }
+            return newSet;
+        });
+    };
+
+    const handleEditOrder = (order) => {
+        // For now, we'll edit the first product in the order
+        // This can be enhanced later to edit all products
+        setSelectedOrderedProduct(order.products[0]);
         setIsModalOpen(true);
     };
 
-    const handleDeleteClick = (orderedProduct) => {
-        setOrderedProductToDelete(orderedProduct);
+    const handleDeleteOrder = (order) => {
+        // Set the entire order for deletion
+        setOrderedProductToDelete(order);
         setIsDeleteModalOpen(true);
     };
 
@@ -102,21 +149,34 @@ const OrderedProducts = () => {
         if (!orderedProductToDelete) return;
 
         try {
-            await deleteOrderedProduct(orderedProductToDelete.id);
+            // Check if we're deleting an entire order or a single product
+            if (orderedProductToDelete.products) {
+                // Deleting an order with multiple products
+                await Promise.all(
+                    orderedProductToDelete.products.map(product =>
+                        deleteOrderedProduct(product.id)
+                    )
+                );
+                alert(`Order #${orderedProductToDelete.orderId} with ${orderedProductToDelete.products.length} product(s) deleted successfully!`);
+            } else {
+                // Deleting a single product
+                await deleteOrderedProduct(orderedProductToDelete.id);
+                alert("Ordered product deleted successfully!");
+            }
+
             await fetchOrderedProductsData();
             setIsDeleteModalOpen(false);
             setOrderedProductToDelete(null);
-            alert("Ordered product deleted successfully!");
         } catch (error) {
             console.error("Error deleting ordered product:", error);
             alert("Failed to delete ordered product. Please try again.");
         }
     };
 
-    const handleStatusClick = (item) => {
+    const handleStatusClick = (order) => {
         setSelectedOrder({
-            id: item.order_id,
-            status: item.orders?.status || "pending"
+            id: order.orderId,
+            status: order.orderInfo?.status || "pending"
         });
         setIsStatusModalOpen(true);
     };
@@ -131,6 +191,18 @@ const OrderedProducts = () => {
         } catch (error) {
             console.error("Error updating order status:", error);
             throw error;
+        }
+    };
+
+    const getStatusColor = (status) => {
+        if (status === "shipped" || status === "shipping" || status === "delivered") {
+            return "bg-green-100 text-green-800";
+        } else if (status === "processing") {
+            return "bg-yellow-100 text-yellow-800";
+        } else if (status === "cancelled") {
+            return "bg-red-100 text-red-800";
+        } else {
+            return "bg-gray-100 text-gray-800";
         }
     };
 
@@ -163,13 +235,7 @@ const OrderedProducts = () => {
                             placeholder="Search by product name or order ID..."
                         />
                     </div>
-                    <button
-                        onClick={handleAddNew}
-                        className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 cursor-pointer text-white font-medium rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105"
-                    >
-                        <FiPlus className="text-lg" />
-                        Add Ordered Product
-                    </button>
+
                 </div>
 
                 <div className="my-3">
@@ -204,13 +270,13 @@ const OrderedProducts = () => {
                                                 Order ID
                                             </th>
                                             <th className="px-2 py-4 text-left text-xs font-semibold uppercase">
-                                                Product
+                                                Products
                                             </th>
                                             <th className="px-2 py-4 text-left text-xs font-semibold uppercase">
-                                                Quantity
+                                                Total Qty
                                             </th>
                                             <th className="px-2 py-4 text-left text-xs font-semibold uppercase tracking-wider">
-                                                Subtotal
+                                                Total Amount
                                             </th>
                                             <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
                                                 Customer
@@ -227,87 +293,134 @@ const OrderedProducts = () => {
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                        {filteredOrderedProducts.map((item) => (
-                                            <tr
-                                                key={item.id}
-                                                className="hover:bg-gray-50 transition-colors"
-                                            >
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="flex items-center gap-2">
+                                        {groupedOrders.map((order) => {
+                                            const isExpanded = expandedOrders.has(order.orderId);
 
-                                                        <span className="text-sm font-medium text-gray-900">
-                                                            #{item.order_id}
-                                                        </span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-2 py-4">
-                                                    <div className="text-sm font-medium text-gray-900 w-40">
-                                                        {item.products?.name || "N/A"}
-                                                    </div>
-                                                </td>
-                                                <td className="px-2 py-4 whitespace-nowrap">
-                                                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary font-bold">
-                                                        {item.quantity}
-                                                    </div>
-                                                </td>
-                                                <td className="px-2 py-4 whitespace-nowrap">
-                                                    <div className="text-sm font-bold text-primary">
-                                                        MVR {((item.products?.price || 0) * item.quantity).toFixed(2)}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="text-sm text-gray-900">
-                                                        {item.orders?.users?.name || "N/A"}
-                                                    </div>
-                                                    <div className="text-xs text-gray-500">
-                                                        {item.orders?.users?.email || ""}
-                                                    </div>
-                                                </td>
-                                                <td className="px-2 py-4 whitespace-nowrap">
-                                                    <span
-                                                        className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${item.orders?.status === "completed" || item.orders?.status === "shipped" || item.orders?.status === "delivered"
-                                                            ? "bg-green-100 text-green-800"
-                                                            : item.orders?.status === "pending" || item.orders?.status === "processing"
-                                                                ? "bg-yellow-100 text-yellow-800"
-                                                                : "bg-gray-100 text-gray-800"
-                                                            }`}
+                                            return (
+                                                <React.Fragment key={order.orderId}>
+                                                    {/* Main order row */}
+                                                    <tr
+                                                        onClick={() => toggleOrderExpansion(order.orderId)}
+                                                        className="hover:bg-gray-50 transition-colors border-b-2 border-gray-200 cursor-pointer"
                                                     >
-                                                        {item.orders?.status || "N/A"}
-                                                    </span>
-                                                </td>
-                                                <td className="px-2 py-4 whitespace-nowrap">
-                                                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                                                        <FiCalendar className="text-gray-400" />
-                                                        {formatDate(item.created_at)}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-center">
-                                                    <div className="flex items-center justify-center gap-2">
-                                                        <button
-                                                            onClick={() => handleEditClick(item)}
-                                                            className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-                                                            title="Edit"
-                                                        >
-                                                            <FiEdit className="text-lg" />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleStatusClick(item)}
-                                                            className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-md transition-colors"
-                                                            title="Update Status"
-                                                        >
-                                                            <FiRefreshCw className="text-lg" />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDeleteClick(item)}
-                                                            className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
-                                                            title="Delete"
-                                                        >
-                                                            <FiTrash2 className="text-lg" />
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
+                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                            <div className="flex items-center gap-2">
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        toggleOrderExpansion(order.orderId);
+                                                                    }}
+                                                                    className="p-1 hover:bg-gray-200 rounded transition-colors"
+                                                                    title={isExpanded ? "Collapse" : "Expand"}
+                                                                >
+                                                                    {isExpanded ? (
+                                                                        <FiChevronDown className="text-gray-600" />
+                                                                    ) : (
+                                                                        <FiChevronRight className="text-gray-600" />
+                                                                    )}
+                                                                </button>
+                                                                <span className="text-sm font-medium text-gray-900">
+                                                                    #{order.orderId}
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-2 py-4">
+                                                            <span className="text-sm font-semibold text-gray-700">
+                                                                {order.products.length} item(s)
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-2 py-4 whitespace-nowrap">
+                                                            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary font-bold">
+                                                                {order.totalQuantity}
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-2 py-4 whitespace-nowrap">
+                                                            <div className="text-sm font-bold text-primary">
+                                                                MVR {order.totalAmount.toFixed(2)}
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <div className="text-sm text-gray-900">
+                                                                {order.customer?.name || "N/A"}
+                                                            </div>
+                                                            <div className="text-xs text-gray-500">
+                                                                {order.customer?.email || ""}
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-2 py-4 whitespace-nowrap">
+                                                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(order.orderInfo?.status)}`}>
+                                                                {order.orderInfo?.status || "N/A"}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-2 py-4 whitespace-nowrap">
+                                                            <div className="flex items-center gap-2 text-sm text-gray-500">
+                                                                <FiCalendar className="text-gray-400" />
+                                                                {formatDate(order.createdAt)}
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                                                            <div className="flex items-center justify-center gap-2">
+                                                                {/* <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleEditOrder(order);
+                                                                    }}
+                                                                    className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                                                                    title="Edit Order"
+                                                                >
+                                                                    <FiEdit className="text-lg" />
+                                                                </button> */}
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleStatusClick(order);
+                                                                    }}
+                                                                    className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-md transition-colors"
+                                                                    title="Update Status"
+                                                                >
+                                                                    <FiRefreshCw className="text-lg" />
+                                                                </button>
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleDeleteOrder(order);
+                                                                    }}
+                                                                    className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
+                                                                    title="Delete Order"
+                                                                >
+                                                                    <FiTrash2 className="text-lg" />
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+
+                                                    {/* Expanded product rows */}
+                                                    {isExpanded && order.products.map((product, idx) => (
+                                                        <tr key={`${order.orderId}-${product.id}`} className="bg-gray-50/50">
+                                                            <td colSpan="2" className="px-6 py-3 pl-16">
+                                                                <div className="flex items-center gap-2">
+                                                                    <FiPackage className="text-gray-400" />
+                                                                    <span className="text-sm text-gray-700 font-medium">
+                                                                        {product.products?.name || "N/A"}
+                                                                    </span>
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-2 py-3 text-sm text-gray-700 text-center">
+                                                                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white border border-gray-300 font-semibold">
+                                                                    {product.quantity}
+                                                                </span>
+                                                            </td>
+                                                            <td className="px-2 py-3 text-sm text-gray-700 font-semibold">
+                                                                MVR {((product.products?.price || 0) * product.quantity).toFixed(2)}
+                                                            </td>
+                                                            <td colSpan="4" className="px-6 py-3 text-sm text-gray-500">
+                                                                <span className="text-xs">Unit Price: MVR {(product.products?.price || 0).toFixed(2)}</span>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </React.Fragment>
+                                            );
+                                        })}
                                     </tbody>
                                 </table>
                             </div>

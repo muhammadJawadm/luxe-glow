@@ -8,20 +8,24 @@ const Payment = () => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
-  const [totalItems, setTotalItems] = useState(0);
+
+  // Separate pagination for App Customer
+  const [appCurrentPage, setAppCurrentPage] = useState(1);
+  const [appItemsPerPage] = useState(10);
+
+  // Separate pagination for POS Customer
+  const [posCurrentPage, setPosCurrentPage] = useState(1);
+  const [posItemsPerPage] = useState(10);
 
   useEffect(() => {
-    // Fetch payments data from a local JSON file or an API endpoint
+    // Fetch all payments data from API endpoint
     const fetchPaymentsData = async () => {
-      const response = await fetchPayments(currentPage, itemsPerPage);
+      const response = await fetchPayments(1, 1000); // Fetch a large number to get all payments
       console.log(response)
       setPaymentsData(response.data || []);
-      setTotalItems(response.count || 0);
     }
     fetchPaymentsData();
-  }, [currentPage]);
+  }, []);
 
   function formatTime(timestamp) {
     const date = new Date(timestamp); // parse the timestamp
@@ -55,6 +59,78 @@ const Payment = () => {
     payment.id?.toString().includes(searchQuery)
   );
 
+  // Separate payments into App Customers and POS Customers
+  const allAppCustomerPayments = filteredPayments.filter(
+    (payment) => payment.users?.name?.toLowerCase() !== "pos_customer"
+  );
+
+  const allPosCustomerPayments = filteredPayments.filter(
+    (payment) => payment.users?.name?.toLowerCase() === "pos_customer"
+  );
+
+  // Paginate App Customer payments
+  const appTotalItems = allAppCustomerPayments.length;
+  const appStartIndex = (appCurrentPage - 1) * appItemsPerPage;
+  const appEndIndex = appStartIndex + appItemsPerPage;
+  const appCustomerPayments = allAppCustomerPayments.slice(appStartIndex, appEndIndex);
+
+  // Paginate POS Customer payments
+  const posTotalItems = allPosCustomerPayments.length;
+  const posStartIndex = (posCurrentPage - 1) * posItemsPerPage;
+  const posEndIndex = posStartIndex + posItemsPerPage;
+  const posCustomerPayments = allPosCustomerPayments.slice(posStartIndex, posEndIndex);
+
+  // Reusable table component
+  const PaymentTable = ({ payments, emptyMessage }) => (
+    <div className="relative overflow-x-auto bg-white sm:rounded-lg border-b border-gray-200">
+      <table className="w-full text-sm text-left text-gray-600 rounded-lg overflow-hidden shadow-sm">
+        <thead className="bg-gradient-to-r from-primary to-primary/80 text-white">
+          <tr>
+            <th className="px-6 py-3.5 font-medium">Payment ID</th>
+            <th className="px-6 py-3.5 font-medium">Customer Name</th>
+            <th className="px-6 py-3.5 font-medium">Payment Date</th>
+            <th className="px-6 py-3.5 font-medium">Discount</th>
+            <th className="px-6 py-3.5 font-medium">Total Amount</th>
+            <th className="px-6 py-3.5 font-medium">Actions</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-200/60">
+          {payments.length === 0 ? (
+            <tr>
+              <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
+                {emptyMessage}
+              </td>
+            </tr>
+          ) : (
+            payments.map((payment) => (
+              <tr
+                key={payment.id}
+                className="bg-white hover:bg-gray-50 transition-colors duration-150 ease-in-out"
+              >
+                <td className="px-6 py-3">{payment.id}</td>
+                <td className="px-6 py-3"><h3 className="text-sm font-bold">{payment.users.name}</h3></td>
+                <td className="px-6 py-3">{formatTime(payment.paid_at)}</td>
+                <td className="px-6 py-3 text-base text-red-500">{payment.discount ? `${payment.discount}%` : "0%"}</td>
+                <td className="px-6 py-3 text-base text-green-500">{payment.amount}</td>
+                <td className="px-6 py-3">
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => handleViewPayment(payment.id)}
+                      className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                      title="View Details"
+                    >
+                      <FiEye className="text-lg" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+
   return (
     <div>
       <Header header={"Manage Payments"} />
@@ -73,54 +149,35 @@ const Payment = () => {
             />
           </div>
         </div>
-        <div className="my-3">
-          <div className="relative overflow-x-auto bg-white sm:rounded-lg border-b border-gray-200">
-            <table className="w-full text-sm text-left text-gray-600 rounded-lg overflow-hidden shadow-sm">
-              <thead className="bg-gradient-to-r from-primary to-primary/80 text-white">
-                <tr>
-                  <th className="px-6 py-3.5 font-medium">Payment ID</th>
-                  <th className="px-6 py-3.5 font-medium">Customer Name</th>
-                  <th className="px-6 py-3.5 font-medium">Payment Date</th>
-                  <th className="px-6 py-3.5 font-medium">Discount</th>
-                  <th className="px-6 py-3.5 font-medium">Total Amount</th>
-                  <th className="px-6 py-3.5 font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200/60">
-                {filteredPayments.length === 0 ? (
-                  <tr>
-                    <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
-                      {searchQuery ? "No payments found matching your search." : "No payments available."}
-                    </td>
-                  </tr>
-                ) : (
-                  filteredPayments.map((payment) => (
-                    <tr
-                      key={payment.id}
-                      className="bg-white hover:bg-gray-50 transition-colors duration-150 ease-in-out"
-                    >
-                      <td className="px-6 py-3">{payment.id}</td>
-                      <td className="px-6 py-3"><h3 className="text-sm font-bold">{payment.users.name}</h3></td>
-                      <td className="px-6 py-3">{formatTime(payment.paid_at)}</td>
-                      <td className="px-6 py-3 text-base text-red-500">{payment.discount ? `${payment.discount}%` : "0%"}</td>
-                      <td className="px-6 py-3 text-base text-green-500">{payment.amount}</td>
-                      <td className="px-6 py-3">
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => handleViewPayment(payment.id)}
-                            className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-                            title="View Details"
-                          >
-                            <FiEye className="text-lg" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+
+        {/* App Customer Table */}
+        <div className="my-6">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">App Customer</h2>
+          <PaymentTable
+            payments={appCustomerPayments}
+            emptyMessage={searchQuery ? "No app customer payments found matching your search." : "No app customer payments available."}
+          />
+          <Pagination
+            currentPage={appCurrentPage}
+            totalItems={appTotalItems}
+            itemsPerPage={appItemsPerPage}
+            onPageChange={(page) => setAppCurrentPage(page)}
+          />
+        </div>
+
+        {/* POS Customer Table */}
+        <div className="my-6">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">POS Customer</h2>
+          <PaymentTable
+            payments={posCustomerPayments}
+            emptyMessage={searchQuery ? "No POS customer payments found matching your search." : "No POS customer payments available."}
+          />
+          <Pagination
+            currentPage={posCurrentPage}
+            totalItems={posTotalItems}
+            itemsPerPage={posItemsPerPage}
+            onPageChange={(page) => setPosCurrentPage(page)}
+          />
         </div>
       </div>
 
@@ -256,12 +313,6 @@ const Payment = () => {
         </div>
       )}
 
-      <Pagination
-        currentPage={currentPage}
-        totalItems={totalItems}
-        itemsPerPage={itemsPerPage}
-        onPageChange={(page) => setCurrentPage(page)}
-      />
     </div>
   );
 };

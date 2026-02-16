@@ -164,27 +164,6 @@ const Home = () => {
             />
           </div>
 
-          {/* Reports Section */}
-          <div className="mt-6 md:mt-8">
-            <div className="grid grid-cols-1 gap-6">
-              {/* Sales Report */}
-              <SalesReportCard />
-
-              {/* Layout for Inventory and Growth Chart */}
-              {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"> */}
-              {/* Inventory Stock Report */}
-              <InventoryStockCard />
-
-              {/* Top Selling Products Card */}
-              {/* <div className="col-span-12 lg:col-span-12 rounded-xl bg-white p-6 shadow-xl"> */}
-              <TopSellingProducts />
-              {/* </div> */}
-              {/* </div> */}
-
-              {/* Growth Overview Chart */}
-              <ChartOne />
-            </div>
-          </div>
         </div>
       </div>
     </div>

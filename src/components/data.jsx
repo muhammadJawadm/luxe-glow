@@ -22,20 +22,16 @@ export const sidebarLinks = [
   {
     name: "POS",
     icon: <RiShoppingBag3Fill />,
-    subLinks: [
-      {
-        name: "Sell",
-        path: "/pos/sell",
-        icon: <MdAppRegistration />,
-      },
-      // {
-      //   name: "Register",
-      //   path: "/pos/register",
-      //   icon: <MdAppRegistration />,
-      // },
-      { name: "Payments", path: "/pos/payments", icon: <MdPayments /> },
-      // { name: "Bills", path: "/pos/bills", icon: <MdReceipt /> },
-    ],
+    path: "/pos/sell",
+    // icon: <MdAppRegistration />,
+
+    // {
+    //   name: "Register",
+    //   path: "/pos/register",
+    //   icon: <MdAppRegistration />,
+    // },
+    // { name: "Payments", path: "/pos/payments", icon: <MdPayments /> },
+    // { name: "Bills", path: "/pos/bills", icon: <MdReceipt /> },
   },
   { name: "Categories", path: "/category", icon: <MdCategory /> },
   { name: "Brands", path: "/brand", icon: <MdOutlineBrandingWatermark /> },
@@ -50,4 +46,5 @@ export const sidebarLinks = [
   // { name: "Inventory", path: "/inventory", icon: <FiBox /> },
   { name: "Content", path: "/content", icon: <MdContentCopy /> },
   { name: "Tax & Delivery Charges", path: "/discount", icon: <AiFillSetting /> },
+  { name: "Reports", path: "/reports", icon: <MdReceipt /> },
 ];

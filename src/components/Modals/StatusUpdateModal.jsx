@@ -7,12 +7,10 @@ const StatusUpdateModal = ({ isOpen, onClose, onSave, currentStatus, orderId }) 
     const [loading, setLoading] = useState(false);
 
     const statusOptions = [
-        { value: "pending", label: "Pending", color: "bg-yellow-100 text-yellow-800 border-yellow-300" },
         { value: "processing", label: "Processing", color: "bg-blue-100 text-blue-800 border-blue-300" },
-        { value: "shipped", label: "Shipped", color: "bg-purple-100 text-purple-800 border-purple-300" },
+        { value: "shipping", label: "Shipping", color: "bg-purple-100 text-purple-800 border-purple-300" },
         { value: "delivered", label: "Delivered", color: "bg-green-100 text-green-800 border-green-300" },
         { value: "cancelled", label: "Cancelled", color: "bg-red-100 text-red-800 border-red-300" },
-        { value: "completed", label: "Completed", color: "bg-emerald-100 text-emerald-800 border-emerald-300" }
     ];
 
     useEffect(() => {
@@ -102,8 +100,8 @@ const StatusUpdateModal = ({ isOpen, onClose, onSave, currentStatus, orderId }) 
                                         key={status.value}
                                         onClick={() => setSelectedStatus(status.value)}
                                         className={`relative px-4 py-3 rounded-lg border-2 text-sm font-medium transition-all duration-200 ${selectedStatus === status.value
-                                                ? `${status.color} border-opacity-100 shadow-md transform scale-105`
-                                                : "bg-white text-gray-700 border-gray-200 hover:border-gray-300"
+                                            ? `${status.color} border-opacity-100 shadow-md transform scale-105`
+                                            : "bg-white text-gray-700 border-gray-200 hover:border-gray-300"
                                             }`}
                                     >
                                         <div className="flex items-center justify-between">
