@@ -109,11 +109,11 @@ export const generateInvoicePDF = (invoiceData) => {
     // Product Table
     const tableStartY = yPosition;
     const col1X = margin;
-    const col2X = margin + 15;
-    const col3X = margin + 75;
-    const col4X = margin + 105;
+    const col2X = margin + 10;
+    const col3X = margin + 85;
+    const col4X = margin + 110;
     const col5X = margin + 135;
-    const col6X = margin + 165;
+    const col6X = margin + 160;
 
     // Table Header
     doc.setFillColor(240, 240, 240);
@@ -143,8 +143,15 @@ export const generateInvoicePDF = (invoiceData) => {
     const itemGST = taxAmount * quantity;
     const itemTotal = finalPrice * quantity;
 
+    // Truncate product name if too long to prevent overlap
+    const maxProductNameLength = 35;
+    const productName = product.name || "Product";
+    const truncatedProductName = productName.length > maxProductNameLength
+        ? productName.substring(0, maxProductNameLength) + '...'
+        : productName;
+
     doc.text(quantity.toString(), col1X + 2, yPosition + 5);
-    doc.text(product.name || "Product", col2X + 2, yPosition + 5);
+    doc.text(truncatedProductName, col2X + 2, yPosition + 5);
     doc.text(originalPrice.toFixed(2), col3X + 2, yPosition + 5);
     doc.text(itemSubtotal.toFixed(2), col4X + 2, yPosition + 5);
     doc.text(itemGST.toFixed(2), col5X + 2, yPosition + 5);

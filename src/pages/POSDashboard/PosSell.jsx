@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import Header from "../../layouts/partials/header";
 import SellProductForm from "./SellProductForm";
-import { FiSearch, FiX } from "react-icons/fi";
+import { FiSearch, FiX, FiArrowLeft } from "react-icons/fi";
 import { fetchProducts, updateProduct } from "../../services/productServices";
 import { createInvoice } from "../../services/posInvoiceServices";
 import { generateInvoicePDF, prepareInvoiceData } from "../../utils/invoiceGenerator";
+import { useNavigate } from "react-router-dom";
 
 const PosSell = () => {
+    const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [products, setProducts] = useState([]);
@@ -130,7 +132,10 @@ const PosSell = () => {
                 {/* Search and Product Selection */}
                 <div className="bg-white p-6 rounded-xl shadow-sm">
                     <div className="flex flex-col md:flex-row gap-4 md:items-center justify-between mb-6">
-                        <h2 className="text-2xl font-bold text-gray-800">Sell Products</h2>
+                        <div className="flex items-center gap-3">
+
+                            <h2 className="text-2xl font-bold text-gray-800">Sell Products</h2>
+                        </div>
 
                         <div className="relative w-full md:w-96">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

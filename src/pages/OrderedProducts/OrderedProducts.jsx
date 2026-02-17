@@ -12,6 +12,7 @@ import {
 } from "../../services/orderedProductsServices";
 import { updateOrderStatus } from "../../services/orderServices";
 import Pagination from "../../components/Pagination";
+import { supabase } from "../../lib/supabase";
 
 const OrderedProducts = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -183,7 +184,98 @@ const OrderedProducts = () => {
 
     const handleStatusUpdate = async (orderId, newStatus) => {
         try {
+            // Update order status in database
             await updateOrderStatus(orderId, newStatus);
+
+            // Find the order to get customer information
+            const order = groupedOrders.find(o => o.orderId === orderId);
+
+            if (order && order.customer) {
+                const userId = order.customer.id;
+
+                // Fetch user's FCM token
+                const { data: userData, error: userError } = await supabase
+                    .from('users')
+                    .select('fcm_token, name, email')
+                    .eq('id', userId)
+                    .single();
+
+                if (!userError && userData && userData.fcm_token) {
+                    // Create notification message based on status
+                    const statusMessages = {
+                        'pending': {
+                            title: '📦 Order Pending',
+                            body: `Your order #${orderId} is pending confirmation.`
+                        },
+                        'processing': {
+                            title: '⚙️ Order Processing',
+                            body: `Great news! Your order #${orderId} is being processed.`
+                        },
+                        'shipped': {
+                            title: '🚚 Order Shipped',
+                            body: `Your order #${orderId} has been shipped and is on its way!`
+                        },
+                        'shipping': {
+                            title: '🚚 Order Shipping',
+                            body: `Your order #${orderId} is being shipped!`
+                        },
+                        'delivered': {
+                            title: '✅ Order Delivered',
+                            body: `Your order #${orderId} has been delivered. Enjoy!`
+                        },
+                        'completed': {
+                            title: '🎉 Order Completed',
+                            body: `Your order #${orderId} is complete. Thank you for shopping with us!`
+                        },
+                        'cancelled': {
+                            title: '❌ Order Cancelled',
+                            body: `Your order #${orderId} has been cancelled.`
+                        }
+                    };
+
+                    const notification = statusMessages[newStatus.toLowerCase()] || {
+                        title: '📋 Order Update',
+                        body: `Your order #${orderId} status has been updated to ${newStatus}.`
+                    };
+
+                    try {
+                        // Send push notification via Supabase Edge Function
+                        const { data: notificationResult, error: notificationError } = await supabase.functions.invoke('send-notification', {
+                            body: {
+                                token: userData.fcm_token,
+                                title: notification.title,
+                                body: notification.body,
+                                data: {
+                                    type: 'order_status_update',
+                                    order_id: orderId,
+                                    new_status: newStatus,
+                                    timestamp: new Date().toISOString(),
+                                }
+                            }
+                        });
+
+                        if (!notificationError && notificationResult?.success) {
+                            // Store notification in database for history
+                            await supabase.from('notifications').insert({
+                                uid: userId,
+                                title: notification.title,
+                                sub_title: notification.body,
+                                sender: 'system'
+                            });
+
+                            console.log(`✅ Notification sent to ${userData.name || userData.email}`);
+                        } else {
+                            console.warn('Failed to send push notification:', notificationError || notificationResult);
+                        }
+                    } catch (notifError) {
+                        // Don't fail the status update if notification fails
+                        console.error('Error sending notification:', notifError);
+                    }
+                } else {
+                    console.log('User does not have FCM token, skipping push notification');
+                }
+            }
+
             alert("Order status updated successfully!");
             await fetchOrderedProductsData();
             setIsStatusModalOpen(false);
