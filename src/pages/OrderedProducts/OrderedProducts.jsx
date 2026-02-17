@@ -188,10 +188,10 @@ const OrderedProducts = () => {
             await updateOrderStatus(orderId, newStatus);
 
             // Find the order to get customer information
-            const order = groupedOrders.find(o => o.orderId === orderId);
+            const order = groupedOrders.find(o => o.order_id === orderId);
 
             if (order && order.customer) {
-                const userId = order.customer.id;
+                const userId = order.uid;
 
                 // Fetch user's FCM token
                 const { data: userData, error: userError } = await supabase
