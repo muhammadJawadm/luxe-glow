@@ -49,7 +49,8 @@ const OrderedProducts = () => {
                     totalQuantity: 0,
                     totalAmount: 0,
                     createdAt: product.created_at,
-                    customer: product.orders?.users
+                    customer: product.orders?.users,
+                    uid: product.orders?.uid,
                 };
             }
 
@@ -188,9 +189,10 @@ const OrderedProducts = () => {
             await updateOrderStatus(orderId, newStatus);
 
             // Find the order to get customer information
-            const order = groupedOrders.find(o => o.order_id === orderId);
+            const order = groupedOrders.find(o => o.orderId === orderId);
+            console.log("order", order);
 
-            if (order && order.customer) {
+            if (order && order.uid) {
                 const userId = order.uid;
 
                 // Fetch user's FCM token
@@ -199,7 +201,7 @@ const OrderedProducts = () => {
                     .select('fcm_token, name, email')
                     .eq('id', userId)
                     .single();
-
+                console.log("userData", userData);
                 if (!userError && userData && userData.fcm_token) {
                     // Create notification message based on status
                     const statusMessages = {
@@ -239,7 +241,15 @@ const OrderedProducts = () => {
                     };
 
                     try {
+                        console.log('Attempting to send notification to:', userData.email);
+                        console.log('FCM Token:', userData.fcm_token);
+                        console.log('Notification payload:', {
+                            title: notification.title,
+                            body: notification.body
+                        });
+
                         // Send push notification via Supabase Edge Function
+                        // Using the exact same format as Notifications.jsx
                         const { data: notificationResult, error: notificationError } = await supabase.functions.invoke('send-notification', {
                             body: {
                                 token: userData.fcm_token,
@@ -247,14 +257,23 @@ const OrderedProducts = () => {
                                 body: notification.body,
                                 data: {
                                     type: 'order_status_update',
-                                    order_id: orderId,
-                                    new_status: newStatus,
                                     timestamp: new Date().toISOString(),
                                 }
                             }
                         });
 
-                        if (!notificationError && notificationResult?.success) {
+                        if (notificationError || (notificationResult && !notificationResult.success)) {
+                            // Get detailed error information
+                            if (notificationError) {
+                                console.error('❌ Edge Function Error Details:');
+
+                                // Try to get the actual error response
+                                if (notificationError.context?.body) {
+                                    console.error('Error body:', notificationError.context.body);
+                                }
+                            }
+                            console.error('❌ Failed to send push notification:', notificationError || notificationResult);
+                        } else {
                             // Store notification in database for history
                             await supabase.from('notifications').insert({
                                 uid: userId,
@@ -263,13 +282,11 @@ const OrderedProducts = () => {
                                 sender: 'system'
                             });
 
-                            console.log(`✅ Notification sent to ${userData.name || userData.email}`);
-                        } else {
-                            console.warn('Failed to send push notification:', notificationError || notificationResult);
+                            console.log(`✅ Notification sent successfully to ${userData.name || userData.email}`);
                         }
                     } catch (notifError) {
                         // Don't fail the status update if notification fails
-                        console.error('Error sending notification:', notifError);
+                        console.error('❌ Error sending notification:', notifError);
                     }
                 } else {
                     console.log('User does not have FCM token, skipping push notification');
