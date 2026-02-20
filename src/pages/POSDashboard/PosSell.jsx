@@ -56,9 +56,14 @@ const PosSell = () => {
             // 1. Save invoice to database
             const invoiceData = {
                 product_id: selectedProduct.id,
-                final_price: data.grandTotal,
+                quantity: data.quantity,
                 discount: data.discount || 0,
-                quantity: data.quantity
+                tax_rate: data.taxRate || 0,
+                tax_amount: data.taxAmount || 0,
+                final_price: data.grandTotal,
+                customer_name: data.customerInfo?.name || null,
+                customer_phone: data.customerInfo?.phone || null,
+                customer_address: data.customerInfo?.address || null,
             };
 
             const invoiceResponse = await createInvoice(invoiceData);

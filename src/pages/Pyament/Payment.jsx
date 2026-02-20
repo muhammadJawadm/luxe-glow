@@ -166,7 +166,7 @@ const Payment = () => {
         </div>
 
         {/* POS Customer Table */}
-        <div className="my-6">
+        {/* <div className="my-6">
           <h2 className="text-xl font-bold text-gray-800 mb-4">POS Customer</h2>
           <PaymentTable
             payments={posCustomerPayments}
@@ -178,7 +178,7 @@ const Payment = () => {
             itemsPerPage={posItemsPerPage}
             onPageChange={(page) => setPosCurrentPage(page)}
           />
-        </div>
+        </div> */}
       </div>
 
       {/* View Payment Details Modal */}

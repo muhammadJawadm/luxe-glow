@@ -17,6 +17,7 @@ import Brand from "./pages/Brand/Brand";
 import Discount from "./pages/Discount/Discount";
 
 import PosSell from "./pages/POSDashboard/PosSell";
+import PosSales from "./pages/POSDashboard/PosSales";
 
 import Notifications from "./pages/Notifications/Notifications";
 import Inventory from "./pages/Inventory/Inventory";
@@ -45,6 +46,7 @@ function App() {
         <Route path="/product" element={<Products />} />
 
         <Route path="/pos/sell" element={<PosSell />} />
+        <Route path="/pos/sales" element={<PosSales />} />
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/order" element={<Orders />} />
         <Route path="/cart" element={<Cart />} />

@@ -1,18 +1,34 @@
 import { createBaseService } from "./baseService";
 
-const posInvoiceService = createBaseService("pos_invoice");
+const posInvoiceService = createBaseService("pos_invoices");
 
 /**
  * Create a new POS invoice record
  * @param {Object} invoiceData - Invoice data
  * @param {number} invoiceData.product_id - Product ID
- * @param {number} invoiceData.final_price - Final price after discount
- * @param {number} invoiceData.discount - Discount amount
  * @param {number} invoiceData.quantity - Quantity sold
+ * @param {number} [invoiceData.discount] - Discount amount per unit
+ * @param {number} [invoiceData.tax_rate] - Tax rate percentage
+ * @param {number} [invoiceData.tax_amount] - Total tax amount
+ * @param {number} invoiceData.final_price - Final price (grand total)
+ * @param {string} [invoiceData.customer_name] - Customer name
+ * @param {string} [invoiceData.customer_phone] - Customer phone
+ * @param {string} [invoiceData.customer_address] - Customer address
  * @returns {Promise} Created invoice data
  */
 export const createInvoice = async (invoiceData) => {
-    return await posInvoiceService.create(invoiceData);
+    const payload = {
+        product_id: invoiceData.product_id,
+        quantity: invoiceData.quantity,
+        discount: invoiceData.discount || 0,
+        tax_rate: invoiceData.tax_rate || 0,
+        tax_amount: invoiceData.tax_amount || 0,
+        final_price: invoiceData.final_price,
+        customer_name: invoiceData.customer_name || null,
+        customer_phone: invoiceData.customer_phone || null,
+        customer_address: invoiceData.customer_address || null,
+    };
+    return await posInvoiceService.create(payload);
 };
 
 /**

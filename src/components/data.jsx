@@ -9,6 +9,7 @@ import {
   MdOutlineBrandingWatermark,
   MdEventNote,
   MdReceipt,
+  MdReceiptLong,
 } from "react-icons/md";
 import { RiShoppingBag3Fill } from "react-icons/ri";
 import { MdAppRegistration } from "react-icons/md";
@@ -33,6 +34,7 @@ export const sidebarLinks = [
     // { name: "Payments", path: "/pos/payments", icon: <MdPayments /> },
     // { name: "Bills", path: "/pos/bills", icon: <MdReceipt /> },
   },
+  { name: "POS Sales", path: "/pos/sales", icon: <MdReceiptLong /> },
   { name: "Categories", path: "/category", icon: <MdCategory /> },
   { name: "Brands", path: "/brand", icon: <MdOutlineBrandingWatermark /> },
   { name: "Products", path: "/product", icon: <AiFillProduct /> },
