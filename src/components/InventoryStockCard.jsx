@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { fetchProducts } from "../services/productServices";
-import { FiPackage, FiAlertTriangle, FiCheckCircle, FiTrendingDown } from "react-icons/fi";
+import { FiPackage, FiAlertTriangle, FiCheckCircle, FiTrendingDown, FiDownload } from "react-icons/fi";
 
 const InventoryStockCard = () => {
     const [loading, setLoading] = useState(true);
@@ -86,15 +86,60 @@ const InventoryStockCard = () => {
         }
     };
 
+    const downloadCSV = async () => {
+        try {
+            const products = await fetchProducts();
+            if (!products || products.length === 0) return;
+            const LOW_STOCK_THRESHOLD = 5;
+            const headers = ["Product ID", "Name", "Category", "Brand", "Price", "Cost", "Stock Level", "Status"];
+            const rows = products.map(p => {
+                let status = "In Stock";
+                if (p.stock_level === 0 || !p.stock_level) status = "Out of Stock";
+                else if (p.stock_level <= LOW_STOCK_THRESHOLD) status = "Low Stock";
+                return [
+                    p.id,
+                    `"${p.name || ""}"`,
+                    `"${p.categories?.name || "N/A"}"`,
+                    `"${p.brands?.name || "N/A"}"`,
+                    (p.price || 0).toFixed(2),
+                    (p.cost || 0).toFixed(2),
+                    p.stock_level || 0,
+                    status,
+                ].join(",");
+            });
+            const csv = [headers.join(","), ...rows].join("\n");
+            const blob = new Blob([csv], { type: "text/csv" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `inventory_report_${new Date().toISOString().split("T")[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error("Error downloading inventory CSV:", err);
+        }
+    };
+
     return (
         <div className="col-span-12 lg:col-span-12 rounded-xl bg-white p-6 shadow-xl">
             {/* Header */}
-            <div className="mb-6">
-                <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                    <FiPackage className="text-primary" />
-                    Inventory Stock Report
-                </h3>
-                <p className="text-sm text-gray-500 mt-1">Current stock levels and alerts</p>
+            <div className="flex items-center justify-between mb-6">
+                <div>
+                    <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                        <FiPackage className="text-primary" />
+                        Inventory Stock Report
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">Current stock levels and alerts</p>
+                </div>
+                <button
+                    onClick={downloadCSV}
+                    disabled={loading}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    title="Download Inventory Report as CSV"
+                >
+                    <FiDownload size={14} />
+                    Download CSV
+                </button>
             </div>
 
             {loading ? (

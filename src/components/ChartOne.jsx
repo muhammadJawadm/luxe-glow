@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import ReactApexChart from "react-apexcharts";
 import { fetchUsers } from "../services/userServices";
 import { fetchProducts } from "../services/productServices";
+import { FiDownload } from "react-icons/fi";
 
 const ChartOne = () => {
   const [loading, setLoading] = useState(true);
@@ -207,6 +208,24 @@ const ChartOne = () => {
     },
   };
 
+  const downloadCSV = () => {
+    if (chartData.categories.length === 0) return;
+    const headers = ["Month", "Users (Cumulative)", "Products (Cumulative)"];
+    const rows = chartData.categories.map((cat, i) => [
+      `"${cat}"`,
+      chartData.series[0]?.data[i] ?? 0,
+      chartData.series[1]?.data[i] ?? 0,
+    ].join(","));
+    const csv = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `growth_overview_${new Date().toISOString().split("T")[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="col-span-12 rounded-sm bg-white px-5 pt-7 pb-5 shadow-xl sm:px-7">
       <div className="flex flex-wrap items-start justify-between gap-3 sm:flex-nowrap">
@@ -218,6 +237,15 @@ const ChartOne = () => {
             </div>
           </div>
         </div>
+        <button
+          onClick={downloadCSV}
+          disabled={loading || chartData.categories.length === 0}
+          className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          title="Download Growth Overview as CSV"
+        >
+          <FiDownload size={14} />
+          Download CSV
+        </button>
       </div>
 
       <div>

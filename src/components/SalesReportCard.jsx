@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import ReactApexChart from "react-apexcharts";
 import { fetchOrders } from "../services/orderServices";
-import { FiCalendar, FiDollarSign, FiTrendingUp } from "react-icons/fi";
+import { FiCalendar, FiDollarSign, FiTrendingUp, FiDownload } from "react-icons/fi";
 
 const SalesReportCard = () => {
     const [loading, setLoading] = useState(true);
@@ -198,6 +198,26 @@ const SalesReportCard = () => {
         },
     ];
 
+    const downloadCSV = () => {
+        const headers = ["Period", "Revenue (MVR)"];
+        const rows = salesData.categories.map((cat, i) => [
+            `"${cat}"`,
+            salesData.chartData[i]?.toFixed(2) ?? "0.00",
+        ]);
+        rows.push(["", ""]);
+        rows.push([`"Total Revenue"`, salesData.totalRevenue.toFixed(2)]);
+        rows.push([`"Total Orders"`, salesData.totalOrders]);
+        rows.push([`"Avg Order Value"`, salesData.averageOrderValue.toFixed(2)]);
+        const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+        const blob = new Blob([csv], { type: "text/csv" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `sales_report_${timePeriod}_${new Date().toISOString().split("T")[0]}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
     return (
         <div className="col-span-12 rounded-xl bg-white p-6 shadow-xl">
             {/* Header */}
@@ -210,26 +230,38 @@ const SalesReportCard = () => {
                     <p className="text-sm text-gray-500 mt-1">Revenue and order analytics</p>
                 </div>
 
-                {/* Time Period Selector */}
-                <div className="flex gap-2">
-                    {[
-                        { value: "day", label: "Day" },
-                        { value: "week", label: "Week" },
-                        { value: "month", label: "Month" },
-                        { value: "year", label: "Year" }
-                    ].map((period) => (
-                        <button
-                            key={period.value}
-                            onClick={() => setTimePeriod(period.value)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${timePeriod === period.value
-                                ? "bg-primary text-white shadow-md"
-                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                                }`}
-                        >
-                            {period.label}
-                        </button>
-                    ))}
+                {/* Time Period Selector + Download */}
+                <div className="flex items-center gap-2">
+                    <div className="flex gap-2">
+                        {[
+                            { value: "day", label: "Day" },
+                            { value: "week", label: "Week" },
+                            { value: "month", label: "Month" },
+                            { value: "year", label: "Year" }
+                        ].map((period) => (
+                            <button
+                                key={period.value}
+                                onClick={() => setTimePeriod(period.value)}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${timePeriod === period.value
+                                    ? "bg-primary text-white shadow-md"
+                                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                    }`}
+                            >
+                                {period.label}
+                            </button>
+                        ))}
+                    </div>
+                    <button
+                        onClick={downloadCSV}
+                        disabled={loading || salesData.categories.length === 0}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                        title="Download Sales Report as CSV"
+                    >
+                        <FiDownload size={14} />
+                        Download CSV
+                    </button>
                 </div>
+
             </div>
 
             {loading ? (

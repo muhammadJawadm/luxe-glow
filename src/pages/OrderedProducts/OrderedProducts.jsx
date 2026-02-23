@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Header from "../../layouts/partials/header";
-import { FiEdit, FiPlus, FiSearch, FiTrash2, FiPackage, FiShoppingCart, FiCalendar, FiRefreshCw, FiChevronDown, FiChevronRight } from "react-icons/fi";
+import { FiEdit, FiPlus, FiSearch, FiTrash2, FiPackage, FiShoppingCart, FiCalendar, FiRefreshCw, FiChevronDown, FiChevronRight, FiPrinter, FiDownload } from "react-icons/fi";
+import jsPDF from "jspdf";
 import DeleteModal from "../../components/Modals/DeleteModal";
 import OrderedProductModal from "../../components/Modals/OrderedProductModal";
 import StatusUpdateModal from "../../components/Modals/StatusUpdateModal";
@@ -315,6 +316,220 @@ const OrderedProducts = () => {
         }
     };
 
+    const handleDownloadPDF = (order) => {
+        const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const margin = 16;
+        let y = 20;
+
+        // Brand
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(22);
+        doc.setTextColor(124, 58, 237);
+        doc.text("Luxe Glow", margin, y);
+
+        // Title right
+        doc.setFontSize(14);
+        doc.setTextColor(55, 65, 81);
+        doc.text("Order Invoice", pageWidth - margin, y, { align: "right" });
+
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(107, 114, 128);
+        doc.text("Beauty & Skincare", margin, y + 6);
+        doc.text(`Order #${order.orderId}`, pageWidth - margin, y + 6, { align: "right" });
+        doc.text(formatDate(order.createdAt), pageWidth - margin, y + 11, { align: "right" });
+
+        y += 18;
+        doc.setDrawColor(229, 231, 235);
+        doc.setLineWidth(0.5);
+        doc.line(margin, y, pageWidth - margin, y);
+        y += 8;
+
+        // Customer & order info
+        doc.setFontSize(8);
+        doc.setTextColor(156, 163, 175);
+        doc.setFont("helvetica", "bold");
+        doc.text("CUSTOMER", margin, y);
+        doc.text("ORDER INFO", pageWidth / 2, y);
+        y += 5;
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(11);
+        doc.setTextColor(17, 24, 39);
+        doc.text(order.customer?.name || "N/A", margin, y);
+        doc.text(`Status: ${order.orderInfo?.status || "N/A"}`, pageWidth / 2, y);
+        doc.setFontSize(9); doc.setTextColor(107, 114, 128);
+        doc.text(order.customer?.email || "", margin, y + 5);
+
+        y += 14;
+        doc.setDrawColor(229, 231, 235);
+        doc.line(margin, y, pageWidth - margin, y);
+        y += 6;
+
+        // Table header
+        const colWidths = [80, 20, 35, 37];
+        const headers = ["Product", "Qty", "Unit Price", "Subtotal"];
+        doc.setFillColor(124, 58, 237);
+        doc.rect(margin, y, pageWidth - margin * 2, 8, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "bold");
+        let cx = margin + 2;
+        headers.forEach((h, i) => {
+            doc.text(h, cx, y + 5.5);
+            cx += colWidths[i];
+        });
+        y += 8;
+
+        // Table rows
+        order.products.forEach((p, i) => {
+            doc.setFillColor(i % 2 === 0 ? 249 : 255, i % 2 === 0 ? 250 : 255, i % 2 === 0 ? 251 : 255);
+            doc.rect(margin, y, pageWidth - margin * 2, 8, "F");
+            doc.setTextColor(31, 41, 55);
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(9);
+            const rowData = [
+                p.products?.name || "N/A",
+                String(p.quantity),
+                `MVR ${(p.products?.price || 0).toFixed(2)}`,
+                `MVR ${((p.products?.price || 0) * p.quantity).toFixed(2)}`,
+            ];
+            cx = margin + 2;
+            rowData.forEach((d, j) => {
+                doc.text(d, cx, y + 5.5);
+                cx += colWidths[j];
+            });
+            y += 8;
+        });
+
+        y += 4;
+        // Totals
+        const totalsX = pageWidth - margin - 70;
+        doc.setFontSize(10); doc.setTextColor(107, 114, 128);
+        doc.text("Total Items:", totalsX, y);
+        doc.text(String(order.products.length), pageWidth - margin, y, { align: "right" });
+        y += 6;
+        doc.text("Total Qty:", totalsX, y);
+        doc.text(String(order.totalQuantity), pageWidth - margin, y, { align: "right" });
+        y += 4;
+        doc.setDrawColor(124, 58, 237);
+        doc.setLineWidth(0.5);
+        doc.line(totalsX, y, pageWidth - margin, y);
+        y += 5;
+        doc.setFontSize(13); doc.setFont("helvetica", "bold"); doc.setTextColor(124, 58, 237);
+        doc.text("Grand Total:", totalsX, y);
+        doc.text(`MVR ${order.totalAmount.toFixed(2)}`, pageWidth - margin, y, { align: "right" });
+
+        // Footer
+        const footerY = doc.internal.pageSize.getHeight() - 16;
+        doc.setDrawColor(229, 231, 235); doc.setLineWidth(0.4);
+        doc.line(margin, footerY, pageWidth - margin, footerY);
+        doc.setFontSize(8); doc.setFont("helvetica", "normal"); doc.setTextColor(156, 163, 175);
+        doc.text(
+            `Thank you for shopping with Luxe Glow  •  Generated on ${new Date().toLocaleString()}`,
+            pageWidth / 2, footerY + 5, { align: "center" }
+        );
+
+        doc.save(`Order-${order.orderId}.pdf`);
+    };
+
+    const handlePrintOrder = (order) => {
+        const printWindow = window.open("", "_blank", "width=800,height=600");
+        const statusColor = {
+            shipped: "#16a34a", shipping: "#16a34a", delivered: "#16a34a",
+            processing: "#ca8a04", cancelled: "#dc2626", pending: "#6b7280",
+            completed: "#16a34a",
+        }[order.orderInfo?.status?.toLowerCase()] || "#6b7280";
+
+        const rows = order.products.map((p, i) => `
+            <tr style="background:${i % 2 === 0 ? '#f9fafb' : '#fff'}">
+                <td style="padding:10px 12px;border-bottom:1px solid #e5e7eb">${p.products?.name || "N/A"}</td>
+                <td style="padding:10px 12px;border-bottom:1px solid #e5e7eb;text-align:center">${p.quantity}</td>
+                <td style="padding:10px 12px;border-bottom:1px solid #e5e7eb;text-align:right">MVR ${(p.products?.price || 0).toFixed(2)}</td>
+                <td style="padding:10px 12px;border-bottom:1px solid #e5e7eb;text-align:right">MVR ${((p.products?.price || 0) * p.quantity).toFixed(2)}</td>
+            </tr>`).join("");
+
+        printWindow.document.write(`
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Order #${order.orderId}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; color: #1f2937; padding: 32px; }
+        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; }
+        .brand { font-size: 26px; font-weight: 700; color: #7c3aed; }
+        .brand-sub { font-size: 12px; color: #6b7280; margin-top: 2px; }
+        .invoice-title { text-align: right; }
+        .invoice-title h2 { font-size: 20px; font-weight: 600; color: #374151; }
+        .invoice-title p { font-size: 13px; color: #6b7280; margin-top: 4px; }
+        .divider { border: none; border-top: 2px solid #e5e7eb; margin: 20px 0; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 28px; }
+        .info-box h4 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af; margin-bottom: 6px; }
+        .info-box p { font-size: 14px; color: #111827; }
+        .info-box .small { font-size: 12px; color: #6b7280; }
+        .status-badge { display:inline-block; padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; color: #fff; background: ${statusColor}; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+        thead { background: #7c3aed; color: #fff; }
+        thead th { padding: 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+        thead th:last-child, thead th:nth-child(3), thead th:nth-child(2) { text-align: right; }
+        thead th:nth-child(2) { text-align: center; }
+        tbody td { font-size: 13px; }
+        .totals { margin-left: auto; width: 280px; }
+        .totals-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; color: #374151; border-bottom: 1px solid #f3f4f6; }
+        .totals-row.grand { font-size: 16px; font-weight: 700; color: #7c3aed; border-top: 2px solid #7c3aed; border-bottom: none; padding-top: 10px; margin-top: 4px; }
+        .footer { margin-top: 40px; text-align: center; font-size: 12px; color: #9ca3af; border-top: 1px solid #e5e7eb; padding-top: 16px; }
+        @media print { body { padding: 20px; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <div class="brand">Luxe Glow</div>
+            <div class="brand-sub">Beauty &amp; Skincare</div>
+        </div>
+        <div class="invoice-title">
+            <h2>Order Invoice</h2>
+            <p>Order #${order.orderId}</p>
+        </div>
+    </div>
+    <hr class="divider" />
+    <div class="info-grid">
+        <div class="info-box">
+            <h4>Customer</h4>
+            <p>${order.customer?.name || "N/A"}</p>
+            <p class="small">${order.customer?.email || ""}</p>
+        </div>
+        <div class="info-box" style="text-align:right">
+            <h4>Order Info</h4>
+            <p>Date: ${formatDate(order.createdAt)}</p>
+            <p style="margin-top:6px"><span class="status-badge">${order.orderInfo?.status || "N/A"}</span></p>
+        </div>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th style="text-align:center">Qty</th>
+                <th style="text-align:right">Unit Price</th>
+                <th style="text-align:right">Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+    </table>
+    <div class="totals">
+        <div class="totals-row"><span>Total Items</span><span>${order.products.length}</span></div>
+        <div class="totals-row"><span>Total Qty</span><span>${order.totalQuantity}</span></div>
+        <div class="totals-row grand"><span>Grand Total</span><span>MVR ${order.totalAmount.toFixed(2)}</span></div>
+    </div>
+    <div class="footer">Thank you for shopping with Luxe Glow &bull; Generated on ${new Date().toLocaleString()}</div>
+    <script>window.onload = function(){ window.print(); }<\/script>
+</body>
+</html>`);
+        printWindow.document.close();
+    };
+
     const formatDate = (dateString) => {
         if (!dateString) return "N/A";
         const date = new Date(dateString);
@@ -479,6 +694,26 @@ const OrderedProducts = () => {
                                                                 >
                                                                     <FiEdit className="text-lg" />
                                                                 </button> */}
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handlePrintOrder(order);
+                                                                    }}
+                                                                    className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-md transition-colors"
+                                                                    title="Print"
+                                                                >
+                                                                    <FiPrinter className="text-lg" />
+                                                                </button>
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleDownloadPDF(order);
+                                                                    }}
+                                                                    className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-md transition-colors"
+                                                                    title="Download as PDF"
+                                                                >
+                                                                    <FiDownload className="text-lg" />
+                                                                </button>
                                                                 <button
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();

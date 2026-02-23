@@ -14,6 +14,7 @@ const posInvoiceService = createBaseService("pos_invoices");
  * @param {string} [invoiceData.customer_name] - Customer name
  * @param {string} [invoiceData.customer_phone] - Customer phone
  * @param {string} [invoiceData.customer_address] - Customer address
+ * @param {string} [invoiceData.invoice_id] - Shared invoice ID for grouped items
  * @returns {Promise} Created invoice data
  */
 export const createInvoice = async (invoiceData) => {
@@ -28,6 +29,9 @@ export const createInvoice = async (invoiceData) => {
         customer_phone: invoiceData.customer_phone || null,
         customer_address: invoiceData.customer_address || null,
     };
+    if (invoiceData.invoice_id) {
+        payload.invoice_id = invoiceData.invoice_id;
+    }
     return await posInvoiceService.create(payload);
 };
 
