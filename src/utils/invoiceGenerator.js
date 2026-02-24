@@ -48,7 +48,6 @@ export const generateInvoicePDF = (invoiceData) => {
     yPosition += 4;
     doc.text("Phone No. 3322261", margin, yPosition);
     yPosition += 4;
-    doc.text("TIN: 1234560GST501", margin, yPosition);
 
     // Invoice Details (Right Side)
     yPosition = 15;
@@ -96,11 +95,6 @@ export const generateInvoicePDF = (invoiceData) => {
 
     if (customerInfo.phone) {
         doc.text(`Phone: ${customerInfo.phone}`, margin, yPosition);
-        yPosition += 4;
-    }
-
-    if (customerInfo.tin) {
-        doc.text(`TIN: ${customerInfo.tin}`, margin, yPosition);
         yPosition += 4;
     }
 
@@ -227,7 +221,6 @@ export const generateMultiInvoicePDF = ({ cartItems, taxRate, customerInfo, invo
     doc.setFontSize(9); doc.setFont(undefined, 'normal');
     doc.text("M. Luxe Glow House", margin, y); y += 4;
     doc.text("Phone No. 3322261", margin, y); y += 4;
-    doc.text("TIN: 1234560GST501", margin, y);
 
     // Invoice info – right
     const rightX = pageWidth - margin - 60;
@@ -249,7 +242,6 @@ export const generateMultiInvoicePDF = ({ cartItems, taxRate, customerInfo, invo
     doc.text(customerInfo.name || "Walk-in Customer", margin, y); y += 4;
     if (customerInfo.address) { doc.text(customerInfo.address, margin, y); y += 4; }
     if (customerInfo.phone) { doc.text(`Phone: ${customerInfo.phone}`, margin, y); y += 4; }
-    if (customerInfo.tin) { doc.text(`TIN: ${customerInfo.tin}`, margin, y); y += 4; }
     y += 3;
 
     // Table header
@@ -361,8 +353,7 @@ export const printMultiInvoice = ({ cartItems, taxRate, customerInfo, invoiceId 
     <div class="cust"><h4>Customer</h4>
     <p>${customerInfo.name || 'Walk-in Customer'}</p>
     ${customerInfo.phone ? `<p class="sm">Phone: ${customerInfo.phone}</p>` : ''}
-    ${customerInfo.address ? `<p class="sm">${customerInfo.address}</p>` : ''}
-    ${customerInfo.tin ? `<p class="sm">TIN: ${customerInfo.tin}</p>` : ''}</div>
+    ${customerInfo.address ? `<p class="sm">${customerInfo.address}</p>` : ''}</div>
     <table><thead><tr><th>Product</th><th style="text-align:center">Qty</th><th style="text-align:right">Unit Price</th>
     <th style="text-align:right">Discount</th><th style="text-align:right">GST(${taxRate}%)</th><th style="text-align:right">Total</th></tr></thead>
     <tbody>${rows}</tbody></table>

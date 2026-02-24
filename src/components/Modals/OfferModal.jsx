@@ -12,7 +12,7 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
   const [offerType, setOfferType] = useState("product"); // "product" or "brand"
 
   const [formData, setFormData] = useState({
-    product_id: "",
+    product_ids: [],
     brand_id: "",
     expire_at: "",
     image_url: "",
@@ -50,8 +50,12 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
   // Populate form when editing
   useEffect(() => {
     if (offer) {
+      const initialProductIds = offer.offers_products && offer.offers_products.length > 0
+        ? offer.offers_products.map(op => op.products?.id || op.product_id).filter(id => id)
+        : (offer.product_id ? [offer.product_id] : []);
+
       setFormData({
-        product_id: offer.product_id || "",
+        product_ids: initialProductIds,
         brand_id: offer.brand_id || "",
         expire_at: offer.expire_at ? offer.expire_at.split('T')[0] : "",
         image_url: offer.image_url || "",
@@ -65,7 +69,7 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
       }
     } else {
       setFormData({
-        product_id: "",
+        product_ids: [],
         brand_id: "",
         expire_at: "",
         image_url: "",
@@ -93,7 +97,7 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
 
   const handleClose = () => {
     setFormData({
-      product_id: "",
+      product_ids: [],
       brand_id: "",
       expire_at: "",
       image_url: "",
@@ -151,8 +155,8 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
 
   const handleSubmit = async () => {
     // Validation based on offer type
-    if (offerType === "product" && !formData.product_id) {
-      alert("Please select a product");
+    if (offerType === "product" && formData.product_ids.length === 0) {
+      alert("Please select at least one product");
       return;
     }
     if (offerType === "brand" && !formData.brand_id) {
@@ -180,7 +184,7 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
 
       // Add product_id or brand_id based on offer type
       if (offerType === "product") {
-        offerData.product_id = formData.product_id;
+        offerData.product_id = formData.product_ids[0];
         offerData.brand_id = null; // Explicitly set to null
       } else {
         offerData.brand_id = formData.brand_id;
@@ -189,11 +193,11 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
 
       if (offer) {
         // Update existing offer
-        await updateOffer(offer.id, offerData);
+        await updateOffer(offer.id, offerData, offerType === "product" ? formData.product_ids : []);
         alert("Offer updated successfully!");
       } else {
         // Create new offer
-        await createOffer(offerData);
+        await createOffer(offerData, offerType === "product" ? formData.product_ids : []);
         alert("Offer created successfully!");
       }
 
@@ -319,22 +323,33 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
                 <div className="ml-10">
                   {offerType === "product" ? (
                     <>
-                      <select
-                        name="product_id"
-                        value={formData.product_id}
-                        onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-md p-2.5 focus:ring-2 focus:ring-primary focus:border-primary"
-                        required
-                      >
-                        <option value="">-- Select a Product --</option>
+                      <div className="max-h-56 overflow-y-auto border border-gray-300 rounded-md p-3 space-y-2 bg-white">
                         {products.map((product) => (
-                          <option key={product.id} value={product.id}>
-                            {product.name} - MVR {product.price}
-                          </option>
+                          <label key={product.id} className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-1 rounded transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={formData.product_ids.includes(product.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setFormData((prev) => ({ ...prev, product_ids: [...prev.product_ids, product.id] }));
+                                } else {
+                                  setFormData((prev) => ({ ...prev, product_ids: prev.product_ids.filter((id) => id !== product.id) }));
+                                }
+                              }}
+                              className="w-4 h-4 text-primary focus:ring-primary rounded border-gray-300"
+                            />
+                            <span className="text-sm text-gray-700">
+                              {product.name} - MVR {product.price}
+                            </span>
+                          </label>
                         ))}
-                      </select>
-                      {!formData.product_id && (
-                        <p className="text-xs text-amber-600 mt-1">⚠️ Product selection is required</p>
+                        {products.length === 0 && <p className="text-sm text-gray-500">No products available</p>}
+                      </div>
+                      {formData.product_ids.length === 0 && (
+                        <p className="text-xs text-amber-600 mt-1">⚠️ At least one product is required</p>
+                      )}
+                      {formData.product_ids.length > 0 && (
+                        <p className="text-xs text-green-600 mt-1">Selected {formData.product_ids.length} product(s)</p>
                       )}
                     </>
                   ) : (
@@ -392,7 +407,7 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
               </div>
 
               {/* Summary Box */}
-              {((offerType === "product" && formData.product_id) || (offerType === "brand" && formData.brand_id)) && formData.expire_at && (
+              {((offerType === "product" && formData.product_ids.length > 0) || (offerType === "brand" && formData.brand_id)) && formData.expire_at && (
                 <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="flex items-center justify-center w-6 h-6 rounded-full bg-green-500 text-white">

@@ -73,6 +73,37 @@ export const fetchInvoicesByProduct = async (productId) => {
 };
 
 /**
+ * Get customer details by phone number
+ * @param {string} phone - Customer phone number
+ * @returns {Promise} Customer details object or null
+ */
+export const fetchCustomerByPhone = async (phone) => {
+    try {
+        const invoices = await posInvoiceService.getAll({
+            select: "customer_name, customer_phone, customer_address",
+            filter: { customer_phone: phone },
+            orderBy: "created_at",
+            ascending: false,
+            limit: 1 // We only need the latest record
+        });
+
+        // Since limit: 1 is used, check if data array has at least one item
+        const data = Array.isArray(invoices) ? invoices : (invoices?.data || []);
+        if (data.length > 0) {
+            return {
+                name: data[0].customer_name || "",
+                phone: data[0].customer_phone || "",
+                address: data[0].customer_address || "",
+            };
+        }
+        return null;
+    } catch (error) {
+        console.error("Error fetching customer by phone:", error);
+        return null;
+    }
+};
+
+/**
  * Get invoice statistics
  * @returns {Promise} Statistics object
  */

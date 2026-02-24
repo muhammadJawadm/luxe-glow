@@ -45,10 +45,18 @@ const Offers = () => {
       setFilteredOffers(offersData);
     } else {
       const filtered = offersData.filter(offer => {
-        const productName = offer.products?.name?.toLowerCase() || "";
+        let productMatch = false;
+        if (offer.offers_products && offer.offers_products.length > 0) {
+          productMatch = offer.offers_products.some(op =>
+            op.products?.name?.toLowerCase().includes(searchQuery.toLowerCase())
+          );
+        } else if (offer.products) {
+          productMatch = offer.products?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+        }
+
         const brandName = offer.brands?.name?.toLowerCase() || "";
         const query = searchQuery.toLowerCase();
-        return productName.includes(query) || brandName.includes(query);
+        return productMatch || brandName.includes(query);
       });
       setFilteredOffers(filtered);
     }
@@ -77,10 +85,18 @@ const Offers = () => {
       const updatedOffers = offersData.filter(offer => offer.id !== offerToDelete.id);
       setOffersData(updatedOffers);
       setFilteredOffers(updatedOffers.filter(offer => {
-        const productName = offer.products?.name?.toLowerCase() || "";
+        let productMatch = false;
+        if (offer.offers_products && offer.offers_products.length > 0) {
+          productMatch = offer.offers_products.some(op =>
+            op.products?.name?.toLowerCase().includes(searchQuery.toLowerCase())
+          );
+        } else if (offer.products) {
+          productMatch = offer.products?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+        }
+
         const brandName = offer.brands?.name?.toLowerCase() || "";
         const query = searchQuery.toLowerCase();
-        return productName.includes(query) || brandName.includes(query);
+        return productMatch || brandName.includes(query);
       }));
       setIsDeleteModalOpen(false);
       setOfferToDelete(null);
@@ -205,33 +221,57 @@ const Offers = () => {
 
                   {/* Offer Image */}
                   <div className="relative h-56 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
-                    <img
-                      src={
-                        offer.image_url ||
-                        offer.products?.product_images?.[0]?.image_url ||
+                    {(() => {
+                      const displayProducts = offer.offers_products && offer.offers_products.length > 0
+                        ? offer.offers_products.map(op => op.products)
+                        : (offer.products ? [offer.products] : []);
+                      const firstProduct = displayProducts[0];
+                      const imageUrl = offer.image_url ||
+                        firstProduct?.product_images?.[0]?.image_url ||
                         offer.brands?.logo ||
-                        "https://via.placeholder.com/400x300?text=No+Image"
-                      }
-                      alt={offer.products?.name || offer.brands?.name || "Offer"}
-                      className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
-                    />
+                        "https://via.placeholder.com/400x300?text=No+Image";
+                      const altText = firstProduct?.name || offer.brands?.name || "Offer";
+
+                      return (
+                        <img
+                          src={imageUrl}
+                          alt={altText}
+                          className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
+                        />
+                      );
+                    })()}
                   </div>
 
                   {/* Offer Details */}
                   <div className="p-4 space-y-3">
                     {/* Product or Brand Info */}
-                    {offer.products ? (
+                    {(offer.offers_products && offer.offers_products.length > 0) || offer.products ? (
                       <div>
-                        <h3 className="text-lg font-bold text-gray-800 line-clamp-1 mb-2">
-                          {offer.products.name}
-                        </h3>
-                        <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2">
-                          <FiPackage className="text-primary flex-shrink-0" />
-                          <div className="flex-1">
-                            <p className="text-xs text-gray-500">Category</p>
-                            <p className="font-medium">{offer.products.categories?.name || "N/A"}</p>
-                          </div>
-                        </div>
+                        {(() => {
+                          const isMultiple = offer.offers_products && offer.offers_products.length > 1;
+                          const displayProducts = offer.offers_products && offer.offers_products.length > 0
+                            ? offer.offers_products.map(op => op.products)
+                            : [offer.products];
+
+                          return (
+                            <>
+                              <h3 className="text-lg font-bold text-gray-800 line-clamp-1 mb-2">
+                                {isMultiple
+                                  ? `Multiple Products Offer (${displayProducts.length})`
+                                  : displayProducts[0]?.name}
+                              </h3>
+                              <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2">
+                                <FiPackage className="text-primary flex-shrink-0" />
+                                <div className="flex-1 w-full overflow-hidden">
+                                  <p className="text-xs text-gray-500">{isMultiple ? 'Products' : 'Category'}</p>
+                                  <p className="font-medium line-clamp-1 truncate w-full" title={isMultiple ? displayProducts.map(p => p?.name).join(', ') : displayProducts[0]?.categories?.name || "N/A"}>
+                                    {isMultiple ? displayProducts.map(p => p?.name).join(', ') : displayProducts[0]?.categories?.name || "N/A"}
+                                  </p>
+                                </div>
+                              </div>
+                            </>
+                          );
+                        })()}
                       </div>
                     ) : offer.brands ? (
                       <div>
@@ -248,17 +288,39 @@ const Offers = () => {
                     ) : null}
 
                     {/* Price for Product Offers OR Brand Name for Brand Offers */}
-                    {offer.products ? (
+                    {(offer.offers_products && offer.offers_products.length > 0) || offer.products ? (
                       <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg px-3 py-2">
-                        <p className="text-xs text-gray-600 mb-1">Product Price</p>
-                        <p className="text-2xl font-bold text-primary">
-                          MVR {offer.products.price}
-                        </p>
+                        {(() => {
+                          const isMultiple = offer.offers_products && offer.offers_products.length > 1;
+                          const displayProducts = offer.offers_products && offer.offers_products.length > 0
+                            ? offer.offers_products.map(op => op.products)
+                            : [offer.products];
+
+                          if (isMultiple) {
+                            return (
+                              <>
+                                <p className="text-xs text-gray-600 mb-1">Products Included</p>
+                                <p className="text-2xl font-bold text-primary">
+                                  {displayProducts.length} Items
+                                </p>
+                              </>
+                            );
+                          } else {
+                            return (
+                              <>
+                                <p className="text-xs text-gray-600 mb-1">Product Price</p>
+                                <p className="text-2xl font-bold text-primary line-clamp-1">
+                                  MVR {displayProducts[0]?.price}
+                                </p>
+                              </>
+                            );
+                          }
+                        })()}
                       </div>
                     ) : offer.brands ? (
                       <div className="bg-gradient-to-r from-purple-100 to-purple-50 rounded-lg px-3 py-2 border border-purple-200">
                         <p className="text-xs text-blue-600 mb-1">Brand Name</p>
-                        <p className="text-2xl font-bold text-blue-700">
+                        <p className="text-2xl font-bold text-blue-700 line-clamp-1">
                           {offer.brands.name}
                         </p>
                       </div>

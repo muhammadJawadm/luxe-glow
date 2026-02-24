@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { FiX, FiUser, FiPhone, FiMapPin, FiFileText } from "react-icons/fi";
+import React, { useState, useEffect, useCallback } from "react";
+import { FiX, FiUser, FiPhone, FiMapPin, FiFileText, FiCheckCircle, FiSearch, FiLoader } from "react-icons/fi";
+import { fetchCustomerByPhone } from "../services/posInvoiceServices";
 
 const CustomerInfoModal = ({ isOpen, onClose, onSubmit }) => {
     const [customerInfo, setCustomerInfo] = useState({
@@ -9,18 +10,66 @@ const CustomerInfoModal = ({ isOpen, onClose, onSubmit }) => {
         tin: ""
     });
 
+    // Search states
+    const [isSearching, setIsSearching] = useState(false);
+    const [searchStatus, setSearchStatus] = useState(null); // 'found', 'not_found', null
+
+    // Reset state upon reopening modal
+    useEffect(() => {
+        if (isOpen) {
+            setSearchStatus(null);
+        }
+    }, [isOpen]);
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setCustomerInfo(prev => ({
             ...prev,
             [name]: value
         }));
+
+        // Clear search status if phone number changes
+        if (name === "phone") {
+            setSearchStatus(null);
+        }
+    };
+
+    const handleSearchCustomer = async () => {
+        if (!customerInfo.phone || customerInfo.phone.trim() === "") return;
+
+        setIsSearching(true);
+        setSearchStatus(null);
+
+        try {
+            console.log("Searching for customer with phone:", customerInfo.phone.trim());
+            const customerData = await fetchCustomerByPhone(customerInfo.phone.trim());
+
+            if (customerData) {
+                setCustomerInfo(prev => ({
+                    ...prev,
+                    name: customerData.name || "",
+                    address: customerData.address || "",
+                    tin: customerData.tin || ""
+                }));
+                setSearchStatus("found");
+            } else {
+                setSearchStatus("not_found");
+            }
+        } catch (error) {
+            console.error("Failed to search customer:", error);
+        } finally {
+            setIsSearching(false);
+        }
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
         onSubmit(customerInfo);
         onClose();
+        setTimeout(() => {
+            setCustomerInfo({ name: "", phone: "", address: "", tin: "" });
+            setSearchStatus(null);
+        }, 300);
     };
 
     const handleSkip = () => {
@@ -31,6 +80,10 @@ const CustomerInfoModal = ({ isOpen, onClose, onSubmit }) => {
             tin: ""
         });
         onClose();
+        setTimeout(() => {
+            setCustomerInfo({ name: "", phone: "", address: "", tin: "" });
+            setSearchStatus(null);
+        }, 300);
     };
 
     if (!isOpen) return null;
@@ -56,6 +109,45 @@ const CustomerInfoModal = ({ isOpen, onClose, onSubmit }) => {
                     </p>
 
                     <div className="space-y-3">
+                        {/* Phone Number (Moved to top) */}
+                        <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                                Phone Number (Search Customer)
+                            </label>
+                            <div className="relative flex">
+                                <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
+                                    <FiPhone className="text-gray-400" size={16} />
+                                </div>
+                                <input
+                                    type="tel"
+                                    name="phone"
+                                    value={customerInfo.phone}
+                                    onChange={handleChange}
+                                    className="w-full pl-9 pr-24 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                    placeholder="Enter phone number"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={handleSearchCustomer}
+                                    disabled={isSearching || !customerInfo.phone}
+                                    className="absolute inset-y-1 right-1 px-3 bg-blue-50 text-blue-600 font-medium text-xs rounded-md hover:bg-blue-100 transition-colors disabled:opacity-50 flex items-center gap-1"
+                                >
+                                    {isSearching ? <FiLoader className="animate-spin" /> : <FiSearch />}
+                                    Search
+                                </button>
+                            </div>
+                            {searchStatus === "found" && (
+                                <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                                    <FiCheckCircle /> Customer found! Auto-filled details.
+                                </p>
+                            )}
+                            {searchStatus === "not_found" && (
+                                <p className="text-xs text-amber-600 mt-1">
+                                    No existing customer found. Please enter details manually.
+                                </p>
+                            )}
+                        </div>
+
                         {/* Customer Name */}
                         <div>
                             <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -72,26 +164,6 @@ const CustomerInfoModal = ({ isOpen, onClose, onSubmit }) => {
                                     onChange={handleChange}
                                     className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     placeholder="Enter customer name"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Phone Number */}
-                        <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-1">
-                                Phone Number
-                            </label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-                                    <FiPhone className="text-gray-400" size={16} />
-                                </div>
-                                <input
-                                    type="tel"
-                                    name="phone"
-                                    value={customerInfo.phone}
-                                    onChange={handleChange}
-                                    className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                                    placeholder="Enter phone number"
                                 />
                             </div>
                         </div>
@@ -116,25 +188,7 @@ const CustomerInfoModal = ({ isOpen, onClose, onSubmit }) => {
                             </div>
                         </div>
 
-                        {/* TIN Number */}
-                        <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-1">
-                                TIN Number
-                            </label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-                                    <FiFileText className="text-gray-400" size={16} />
-                                </div>
-                                <input
-                                    type="text"
-                                    name="tin"
-                                    value={customerInfo.tin}
-                                    onChange={handleChange}
-                                    className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                                    placeholder="Enter TIN number"
-                                />
-                            </div>
-                        </div>
+
                     </div>
 
                     {/* Modal Footer */}
