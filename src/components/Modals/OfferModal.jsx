@@ -184,11 +184,10 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
 
       // Add product_id or brand_id based on offer type
       if (offerType === "product") {
-        offerData.product_id = formData.product_ids[0];
         offerData.brand_id = null; // Explicitly set to null
       } else {
         offerData.brand_id = formData.brand_id;
-        offerData.product_id = null; // Explicitly set to null
+        // offerData.product_id = null; // Explicitly set to null
       }
 
       if (offer) {
@@ -209,7 +208,11 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
       handleClose();
     } catch (error) {
       console.error("Error saving offer:", error);
-      alert("Failed to save offer. Please try again.");
+      if (error?.code === '23505' && error?.message?.includes('offers_products_product_id_key')) {
+        alert("An offer on one or more of these products already exists. You can create a new offer for different products.");
+      } else {
+        alert("Failed to save offer. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
