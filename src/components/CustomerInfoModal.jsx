@@ -7,7 +7,6 @@ const CustomerInfoModal = ({ isOpen, onClose, onSubmit }) => {
         name: "",
         phone: "",
         address: "",
-        tin: ""
     });
 
     // Search states
@@ -49,7 +48,6 @@ const CustomerInfoModal = ({ isOpen, onClose, onSubmit }) => {
                     ...prev,
                     name: customerData.name || "",
                     address: customerData.address || "",
-                    tin: customerData.tin || ""
                 }));
                 setSearchStatus("found");
             } else {
@@ -67,7 +65,7 @@ const CustomerInfoModal = ({ isOpen, onClose, onSubmit }) => {
         onSubmit(customerInfo);
         onClose();
         setTimeout(() => {
-            setCustomerInfo({ name: "", phone: "", address: "", tin: "" });
+            setCustomerInfo({ name: "", phone: "", address: "" });
             setSearchStatus(null);
         }, 300);
     };
@@ -77,11 +75,10 @@ const CustomerInfoModal = ({ isOpen, onClose, onSubmit }) => {
             name: "",
             phone: "",
             address: "",
-            tin: ""
         });
         onClose();
         setTimeout(() => {
-            setCustomerInfo({ name: "", phone: "", address: "", tin: "" });
+            setCustomerInfo({ name: "", phone: "", address: "" });
             setSearchStatus(null);
         }, 300);
     };

@@ -89,7 +89,9 @@ export const generateInvoicePDF = (invoiceData) => {
     }
 
     if (customerInfo.address) {
-        doc.text(customerInfo.address, margin, yPosition);
+        const addrSingle = customerInfo.address.replace(/\r?\n/g, ', ');
+        const addrLine = doc.splitTextToSize(addrSingle, pageWidth / 2 - margin)[0];
+        doc.text(addrLine, margin, yPosition);
         yPosition += 4;
     }
 
@@ -157,8 +159,8 @@ export const generateInvoicePDF = (invoiceData) => {
     yPosition += rowHeight + 10;
 
     // Summary Section (Right Aligned)
-    const summaryX = pageWidth - 60;
-    const summaryLabelX = pageWidth - 90;
+    const summaryX = pageWidth - margin;
+    const summaryLabelX = pageWidth - margin - 40;
 
     doc.setFontSize(10);
     doc.setFont(undefined, 'normal');
@@ -240,7 +242,7 @@ export const generateMultiInvoicePDF = ({ cartItems, taxRate, customerInfo, invo
     doc.setFontSize(10); doc.setFont(undefined, 'bold'); doc.text("Customer:", margin, y); y += 5;
     doc.setFontSize(9); doc.setFont(undefined, 'normal');
     doc.text(customerInfo.name || "Walk-in Customer", margin, y); y += 4;
-    if (customerInfo.address) { doc.text(customerInfo.address, margin, y); y += 4; }
+    if (customerInfo.address) { doc.text(doc.splitTextToSize(customerInfo.address.replace(/\r?\n/g, ', '), pageWidth / 2 - margin)[0], margin, y); y += 4; }
     if (customerInfo.phone) { doc.text(`Phone: ${customerInfo.phone}`, margin, y); y += 4; }
     y += 3;
 
@@ -284,7 +286,7 @@ export const generateMultiInvoicePDF = ({ cartItems, taxRate, customerInfo, invo
     });
 
     y += 8;
-    const sX = pageWidth - 60, lX = pageWidth - 90;
+    const sX = pageWidth - margin, lX = pageWidth - margin - 40;
     doc.setFontSize(10); doc.setFont(undefined, 'normal');
     doc.text("Sub Total", lX, y, { align: "right" }); doc.text(grandSubtotal.toFixed(2), sX, y, { align: "right" }); y += 5;
     doc.text(`GST (${taxRate}%)`, lX, y, { align: "right" }); doc.text(grandGST.toFixed(2), sX, y, { align: "right" }); y += 5;

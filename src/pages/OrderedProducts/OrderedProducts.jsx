@@ -360,8 +360,15 @@ const OrderedProducts = () => {
         doc.text(`Status: ${order.orderInfo?.status || "N/A"}`, pageWidth / 2, y);
         doc.setFontSize(9); doc.setTextColor(107, 114, 128);
         doc.text(order.customer?.email || "", margin, y + 5);
+        if (order.customer?.phone) {
+            doc.text(`Phone: ${order.customer.phone}`, margin, y + 10);
+        }
+        if (order.customer?.address) {
+            doc.text(`Address: ${order.customer.address}`, margin, y + 15);
+        }
+        doc.text(`TIN: TIN-0000000`, margin, y + (order.customer?.address ? 21 : order.customer?.phone ? 16 : 11));
 
-        y += 14;
+        y += (order.customer?.phone || order.customer?.address ? 28 : 20);
         doc.setDrawColor(229, 231, 235);
         doc.line(margin, y, pageWidth - margin, y);
         y += 6;
@@ -500,6 +507,9 @@ const OrderedProducts = () => {
             <h4>Customer</h4>
             <p>${order.customer?.name || "N/A"}</p>
             <p class="small">${order.customer?.email || ""}</p>
+            ${order.customer?.phone ? `<p class="small">Phone: ${order.customer.phone}</p>` : ""}
+            ${order.customer?.address ? `<p class="small">Address: ${order.customer.address}</p>` : ""}
+            <p class="small">TIN: TIN-0000000</p>
         </div>
         <div class="info-box" style="text-align:right">
             <h4>Order Info</h4>
