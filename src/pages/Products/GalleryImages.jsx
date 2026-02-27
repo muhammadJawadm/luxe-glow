@@ -21,16 +21,10 @@ const GalleryImages = ({
               alt={`Gallery ${index + 1}`}
               className="h-28 w-full object-cover rounded border border-gray-200"
             />
-            <button
-              onClick={() => removeImage(index)}
-              className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-              title="Remove image"
-            >
-              ×
-            </button>
+
           </div>
         ))}
-        <div className="border-2 border-dashed border-gray-300 rounded h-28 flex items-center justify-center">
+        {/* <div className="border-2 border-dashed border-gray-300 rounded h-28 flex items-center justify-center">
           {newGalleryImage ? (
             <div className="relative">
               <img
@@ -83,7 +77,7 @@ const GalleryImages = ({
               </label>
             </>
           )}
-        </div>
+        </div> */}
       </div>
     </div>
   );

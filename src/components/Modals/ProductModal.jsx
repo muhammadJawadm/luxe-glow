@@ -1,49 +1,51 @@
 import { useEffect, useRef, useState } from "react";
-import { FiSearch, FiEye, FiEdit2, FiTrash2 } from "react-icons/fi";
-import { AiFillStar, AiOutlineStar } from "react-icons/ai";
-import { Link } from "react-router-dom";
+import { FiPlus, FiX } from "react-icons/fi";
 import { createProduct, updateProduct } from "../../services/productServices";
 import { fetchCategories } from "../../services/categoriesServices";
 import { fetchBrands } from "../../services/brandsServices";
 import { supabase } from "../../lib/supabase";
 
+const EMPTY_FORM = {
+  name: "",
+  cost: "",
+  price: "",
+  stock_level: "",
+  category_id: "",
+  brand_id: "",
+  description: "",
+  rating: 0,
+  upc_number: "",
+};
+
 const ProductModal = ({ product, isOpen, onClose, onSave }) => {
   const modalRef = useRef(null);
+  const fileInputRef = useRef(null);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    cost: "",
-    price: "",
-    stock_level: "",
-    category_id: "",
-    brand_id: "",
-    description: "",
-    rating: 0,
-    upc_number: "",
-    image: null,
-    imagePreview: "",
-  });
+  const [formData, setFormData] = useState(EMPTY_FORM);
+
+  // Existing images already saved in DB: [{ id, image_url }]
+  const [existingImages, setExistingImages] = useState([]);
+  // IDs of existing images marked for deletion
+  const [imagesToDelete, setImagesToDelete] = useState([]);
+  // New images picked this session: [{ file, preview }]
+  const [newImages, setNewImages] = useState([]);
+
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
 
-
-  // Fetch categories and brands
+  // Fetch categories and brands when modal opens
   useEffect(() => {
+    if (!isOpen) return;
     const loadData = async () => {
       try {
-        const [categoriesData, brandsData] = await Promise.all([
-          fetchCategories(),
-          fetchBrands()
-        ]);
-        setCategories(categoriesData);
-        setBrands(brandsData);
-      } catch (error) {
-        console.error("Error loading categories/brands:", error);
+        const [cats, brnds] = await Promise.all([fetchCategories(), fetchBrands()]);
+        setCategories(cats);
+        setBrands(brnds);
+      } catch (err) {
+        console.error("Error loading categories/brands:", err);
       }
     };
-    if (isOpen) {
-      loadData();
-    }
+    loadData();
   }, [isOpen]);
 
   // Populate form when editing
@@ -54,59 +56,41 @@ const ProductModal = ({ product, isOpen, onClose, onSave }) => {
         cost: product.cost || "",
         price: product.price || "",
         stock_level: product.stock_level || "",
-        category_id: product.categorie_id || "", // Database uses 'categorie_id' not 'category_id'
+        category_id: product.categorie_id || "",
         brand_id: product.brand_id || "",
         description: product.description || "",
         rating: product.rating || 0,
         upc_number: product.upc_number || "",
-        image: null,
-        imagePreview: product.product_images?.[0]?.image_url || "",
       });
+      setExistingImages(
+        (product.product_images || []).map((img) => ({
+          id: img.id,
+          image_url: img.image_url,
+        }))
+      );
     } else {
-      setFormData({
-        name: "",
-        cost: "",
-        price: "",
-        stock_level: "",
-        category_id: "",
-        brand_id: "",
-        description: "",
-        rating: 0,
-        upc_number: "",
-        image: null,
-        imagePreview: "",
-      });
+      resetState();
     }
   }, [product]);
 
+  // Close on outside click
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (modalRef.current && !modalRef.current.contains(event.target)) {
-        handleClose();
-      }
+    const handleClickOutside = (e) => {
+      if (modalRef.current && !modalRef.current.contains(e.target)) handleClose();
     };
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    if (isOpen) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
 
+  const resetState = () => {
+    setFormData(EMPTY_FORM);
+    setExistingImages([]);
+    setImagesToDelete([]);
+    setNewImages([]);
+  };
+
   const handleClose = () => {
-    setFormData({
-      name: "",
-      cost: "",
-      price: "",
-      stock_level: "",
-      category_id: "",
-      brand_id: "",
-      description: "",
-      rating: 0,
-      upc_number: "",
-      image: null,
-      imagePreview: "",
-    });
+    resetState();
     onClose();
   };
 
@@ -115,119 +99,110 @@ const ProductModal = ({ product, isOpen, onClose, onSave }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData((prev) => ({
-        ...prev,
-        image: file,
-      }));
-      // Use FileReader for preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData((prev) => ({
-          ...prev,
-          imagePreview: reader.result,
-        }));
-      };
-      reader.readAsDataURL(file);
-    }
+  // ── Image helpers ──────────────────────────────────────────────────────────
+
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    const previews = files.map((file) => {
+      const preview = URL.createObjectURL(file);
+      return { file, preview };
+    });
+    setNewImages((prev) => [...prev, ...previews]);
+    // reset so same file can be re-selected
+    e.target.value = "";
   };
 
-  const uploadImage = async () => {
-    if (!formData.image) return formData.imagePreview;
-
-    try {
-      const fileExt = formData.image.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
-      const filePath = `products/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('images')
-        .upload(filePath, formData.image);
-
-      if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage
-        .from('images')
-        .getPublicUrl(filePath);
-
-      return urlData.publicUrl;
-    } catch (error) {
-      console.error("Error uploading image:", error);
-      throw error;
-    }
+  const removeExistingImage = (id) => {
+    setExistingImages((prev) => prev.filter((img) => img.id !== id));
+    setImagesToDelete((prev) => [...prev, id]);
   };
+
+  const removeNewImage = (index) => {
+    setNewImages((prev) => {
+      URL.revokeObjectURL(prev[index].preview);
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
+  // Upload a single file to Supabase Storage and return the public URL
+  const uploadFile = async (file) => {
+    const ext = file.name.split(".").pop();
+    const name = `${Math.random().toString(36).substring(2)}_${Date.now()}.${ext}`;
+    const path = `products/${name}`;
+
+    const { error } = await supabase.storage.from("images").upload(path, file);
+    if (error) throw error;
+
+    const { data } = supabase.storage.from("images").getPublicUrl(path);
+    return data.publicUrl;
+  };
+
+  // ── Submit ─────────────────────────────────────────────────────────────────
 
   const handleSubmit = async () => {
-    // Validate required fields
     if (!formData.name || !formData.price || !formData.category_id || !formData.brand_id) {
-      alert("Please fill in all required fields (name, price, category, brand)");
+      alert("Please fill in all required fields (Name, Price, Category, Brand)");
       return;
     }
 
     setLoading(true);
-
     try {
-      // Upload image if new file selected
-      let imageUrl = formData.imagePreview;
-      if (formData.image) {
-        imageUrl = await uploadImage();
-      }
+      // 1. Upload any new files
+      const uploadedUrls = await Promise.all(newImages.map((n) => uploadFile(n.file)));
 
-      const productData = {
+      const productPayload = {
         name: formData.name,
         description: formData.description,
         cost: formData.cost ? parseFloat(formData.cost) : null,
         price: parseFloat(formData.price),
         stock_level: parseInt(formData.stock_level) || 0,
-        categorie_id: formData.category_id, // Database column is 'categorie_id' not 'category_id'
+        categorie_id: formData.category_id,
         brand_id: formData.brand_id,
         rating: parseFloat(formData.rating) || 0,
         upc_number: formData.upc_number || null,
       };
 
-      let productId;
       if (product) {
-        // Update existing product
-        await updateProduct(product.id, productData);
-        productId = product.id;
+        // ── UPDATE ─────────────────────────────────────────────────────────
+        await updateProduct(product.id, productPayload);
 
-        // Update product image if changed
-        if (formData.image && imageUrl) {
-          // Delete old image entry and create new one
+        // Delete images marked for removal
+        if (imagesToDelete.length) {
           await supabase
-            .from('product_images')
+            .from("product_images")
             .delete()
-            .eq('product_id', productId);
-
-          await supabase
-            .from('product_images')
-            .insert({ product_id: productId, image_url: imageUrl });
+            .in("id", imagesToDelete);
         }
+
+        // Insert new images
+        if (uploadedUrls.length) {
+          await supabase.from("product_images").insert(
+            uploadedUrls.map((url) => ({ product_id: product.id, image_url: url }))
+          );
+        }
+
         alert("Product updated successfully!");
       } else {
-        // Create new product
-        const response = await createProduct(productData);
-        productId = response[0]?.id || response.id;
+        // ── CREATE ─────────────────────────────────────────────────────────
+        const response = await createProduct(productPayload);
+        const productId = response[0]?.id || response.id;
 
-        // Add product image to product_images table
-        if (imageUrl && productId) {
-          await supabase
-            .from('product_images')
-            .insert({ product_id: productId, image_url: imageUrl });
+        // Insert all images (existing previews are local blobs; we only insert uploaded URLs)
+        if (uploadedUrls.length && productId) {
+          await supabase.from("product_images").insert(
+            uploadedUrls.map((url) => ({ product_id: productId, image_url: url }))
+          );
         }
+
         alert("Product created successfully!");
       }
 
-      // Call the onSave callback to refresh the product list
-      if (onSave) {
-        await onSave();
-      }
-
+      if (onSave) await onSave();
       handleClose();
-    } catch (error) {
-      console.error("Error saving product:", error);
+    } catch (err) {
+      console.error("Error saving product:", err);
       alert("Failed to save product. Please try again.");
     } finally {
       setLoading(false);
@@ -236,48 +211,97 @@ const ProductModal = ({ product, isOpen, onClose, onSave }) => {
 
   if (!isOpen) return null;
 
+  const totalImages = existingImages.length + newImages.length;
+
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/60 z-50 p-4">
       <div
         ref={modalRef}
         className="bg-white w-full max-w-2xl rounded-lg shadow-2xl flex flex-col max-h-[90vh]"
       >
-        {/* Header - Fixed */}
+        {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-2xl font-bold text-gray-800">
             {product ? "Edit Product" : "Add New Product"}
           </h2>
         </div>
 
-        {/* Scrollable Content */}
+        {/* Scrollable body */}
         <div className="px-6 py-4 overflow-y-auto flex-1">
-          {/* Image Upload */}
-          <div className="mb-4">
+
+          {/* ── Multi-image grid ────────────────────────────────────────── */}
+          <div className="mb-5">
             <label className="block mb-2 text-sm font-medium text-gray-700">
-              Product Image
+              Product Images{" "}
+              <span className="text-gray-400 font-normal">({totalImages} photo{totalImages !== 1 ? "s" : ""})</span>
             </label>
-            <label className="cursor-pointer block w-full">
-              <input
-                type="file"
-                className="hidden"
-                onChange={handleImageChange}
-                accept="image/*"
-              />
-              <img
-                src={
-                  formData.imagePreview ||
-                  "https://images.unsplash.com/photo-1587754256282-a11d04e3472d?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3"
-                }
-                alt="Product preview"
-                className="w-full h-40 object-cover border-2 border-dashed border-gray-300 rounded-lg hover:border-primary transition-colors"
-              />
-              <p className="text-xs text-gray-500 mt-1 text-center">
-                Click to upload image
-              </p>
-            </label>
+
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+              {/* Existing images */}
+              {existingImages.map((img) => (
+                <div key={img.id} className="relative group aspect-square">
+                  <img
+                    src={img.image_url}
+                    alt="product"
+                    className="w-full h-full object-cover rounded-lg border border-gray-200"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeExistingImage(img.id)}
+                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity shadow"
+                    title="Remove image"
+                  >
+                    <FiX className="text-xs" />
+                  </button>
+                </div>
+              ))}
+
+              {/* New images (not yet uploaded) */}
+              {newImages.map((img, idx) => (
+                <div key={idx} className="relative group aspect-square">
+                  <img
+                    src={img.preview}
+                    alt="new product"
+                    className="w-full h-full object-cover rounded-lg border-2 border-dashed border-primary/50"
+                  />
+                  {/* "new" badge */}
+                  <span className="absolute bottom-1 left-1 text-[10px] bg-primary text-white rounded px-1 leading-4">
+                    new
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => removeNewImage(idx)}
+                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity shadow"
+                    title="Remove image"
+                  >
+                    <FiX className="text-xs" />
+                  </button>
+                </div>
+              ))}
+
+              {/* Add tile */}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="aspect-square flex flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-gray-300 hover:border-primary hover:bg-primary/5 transition-colors text-gray-400 hover:text-primary"
+              >
+                <FiPlus className="text-2xl" />
+                <span className="text-xs font-medium">Add Image</span>
+              </button>
+            </div>
+
+            {/* Hidden multi-file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept="image/*"
+              className="hidden"
+              onChange={handleFileSelect}
+            />
           </div>
 
-          {/* Two Column Layout for Form Fields */}
+          {/* ── Form fields ───────────────────────────────────────────────── */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Name */}
             <div className="md:col-span-2">
@@ -297,9 +321,7 @@ const ProductModal = ({ product, isOpen, onClose, onSave }) => {
 
             {/* Cost */}
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                Cost (MVR)
-              </label>
+              <label className="block mb-1 text-sm font-medium text-gray-700">Cost (MVR)</label>
               <input
                 type="number"
                 step="0.01"
@@ -330,9 +352,7 @@ const ProductModal = ({ product, isOpen, onClose, onSave }) => {
 
             {/* Stock Level */}
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                Stock Level
-              </label>
+              <label className="block mb-1 text-sm font-medium text-gray-700">Stock Level</label>
               <input
                 type="number"
                 name="stock_level"
@@ -343,8 +363,8 @@ const ProductModal = ({ product, isOpen, onClose, onSave }) => {
               />
             </div>
 
-            {/* UPC/Barcode Number */}
-            <div className="md:col-span-2">
+            {/* UPC */}
+            <div>
               <label className="block mb-1 text-sm font-medium text-gray-700">
                 UPC / Barcode Number
               </label>
@@ -354,7 +374,7 @@ const ProductModal = ({ product, isOpen, onClose, onSave }) => {
                 value={formData.upc_number}
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-md p-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                placeholder="Enter barcode number (e.g., 123456789012)"
+                placeholder="123456789012"
               />
             </div>
 
@@ -402,9 +422,7 @@ const ProductModal = ({ product, isOpen, onClose, onSave }) => {
 
             {/* Description */}
             <div className="md:col-span-2">
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                Description
-              </label>
+              <label className="block mb-1 text-sm font-medium text-gray-700">Description</label>
               <textarea
                 name="description"
                 value={formData.description}
@@ -417,7 +435,7 @@ const ProductModal = ({ product, isOpen, onClose, onSave }) => {
           </div>
         </div>
 
-        {/* Footer - Fixed */}
+        {/* Footer */}
         <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-lg flex justify-end gap-3">
           <button
             onClick={handleClose}
@@ -427,10 +445,10 @@ const ProductModal = ({ product, isOpen, onClose, onSave }) => {
           </button>
           <button
             onClick={handleSubmit}
-            className="px-5 py-2.5 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={loading}
+            className="px-5 py-2.5 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? "Saving..." : product ? "Update Product" : "Create Product"}
+            {loading ? "Saving…" : product ? "Update Product" : "Create Product"}
           </button>
         </div>
       </div>

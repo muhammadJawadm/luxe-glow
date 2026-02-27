@@ -240,6 +240,16 @@ const Offers = () => {
                         />
                       );
                     })()}
+
+                    {/* Discount badge */}
+                    {offer.discount != null && (
+                      <div className="absolute bottom-3 left-3 z-10">
+                        <div className="bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1">
+                          <FiTag className="text-sm" />
+                          {offer.discount}% OFF
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Offer Details */}
@@ -306,12 +316,28 @@ const Offers = () => {
                               </>
                             );
                           } else {
+                            const originalPrice = displayProducts[0]?.price;
+                            let discountedPrice = null;
+                            if (offer.discount != null && originalPrice != null) {
+                              discountedPrice = originalPrice * (1 - offer.discount / 100);
+                            }
                             return (
                               <>
                                 <p className="text-xs text-gray-600 mb-1">Product Price</p>
-                                <p className="text-2xl font-bold text-primary line-clamp-1">
-                                  MVR {displayProducts[0]?.price}
-                                </p>
+                                {discountedPrice != null ? (
+                                  <div className="flex items-baseline gap-2 flex-wrap">
+                                    <p className="text-2xl font-bold text-primary">
+                                      MVR {discountedPrice.toFixed(2)}
+                                    </p>
+                                    <p className="text-sm text-gray-400 line-through">
+                                      MVR {originalPrice}
+                                    </p>
+                                  </div>
+                                ) : (
+                                  <p className="text-2xl font-bold text-primary line-clamp-1">
+                                    MVR {originalPrice}
+                                  </p>
+                                )}
                               </>
                             );
                           }

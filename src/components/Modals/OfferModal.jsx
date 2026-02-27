@@ -16,6 +16,7 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
     brand_id: "",
     expire_at: "",
     image_url: "",
+    discount: "",
   });
 
   // Fetch products and brands for dropdown
@@ -59,6 +60,7 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
         brand_id: offer.brand_id || "",
         expire_at: offer.expire_at ? offer.expire_at.split('T')[0] : "",
         image_url: offer.image_url || "",
+        discount: offer.discount ?? "",
       });
       setImagePreview(offer.image_url || null);
       // Determine offer type based on which ID is present
@@ -73,6 +75,7 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
         brand_id: "",
         expire_at: "",
         image_url: "",
+        discount: "",
       });
       setImagePreview(null);
       setOfferType("product");
@@ -101,6 +104,7 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
       brand_id: "",
       expire_at: "",
       image_url: "",
+      discount: "",
     });
     setImageFile(null);
     setImagePreview(null);
@@ -168,7 +172,11 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
       return;
     }
 
-    setLoading(true);
+    // Validate discount
+    if (formData.discount !== "" && (parseInt(formData.discount) < 1 || parseInt(formData.discount) > 99)) {
+      alert("Discount must be between 1 and 99 percent");
+      return;
+    }
 
     try {
       // Upload image if new file selected
@@ -180,6 +188,7 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
       const offerData = {
         expire_at: formData.expire_at,
         image_url: imageUrl,
+        discount: formData.discount !== "" ? parseInt(formData.discount) : null,
       };
 
       // Add product_id or brand_id based on offer type
@@ -379,11 +388,45 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
                 </div>
               </div>
 
-              {/* Step 4: Expiry Date */}
+              {/* Step 4: Discount */}
               <div className="border-l-4 border-primary pl-4">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white font-bold text-sm">
                     4
+                  </div>
+                  <h3 className="text-base font-semibold text-gray-900">Set Discount (%)</h3>
+                </div>
+                <p className="text-sm text-gray-600 mb-3 ml-10">
+                  Enter a discount percentage (1–99). Leave blank for no discount.
+                </p>
+                <div className="ml-10 space-y-2">
+                  <div className="relative">
+                    <input
+                      type="number"
+                      name="discount"
+                      value={formData.discount}
+                      onChange={handleChange}
+                      min="1"
+                      max="99"
+                      step="1"
+                      placeholder="e.g. 20"
+                      className="w-full border border-gray-300 rounded-md p-2.5 pr-10 focus:ring-2 focus:ring-primary focus:border-primary"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium text-sm">%</span>
+                  </div>
+                  {formData.discount && (
+                    <p className="text-xs text-green-600">
+                      ✓ {formData.discount}% discount will be applied
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Step 5: Expiry Date */}
+              <div className="border-l-4 border-primary pl-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white font-bold text-sm">
+                    5
                   </div>
                   <h3 className="text-base font-semibold text-gray-900">Set Expiry Date</h3>
                 </div>
