@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { login, isAuthenticated, getCurrentUser } from "../../services/authService";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -111,17 +113,25 @@ const Login = () => {
               >
                 Password
               </label>
-              <div className="flex items-center border rounded-xl bg-transparent border-gray-300">
+              <div className="flex items-center border rounded-xl bg-transparent border-primary focus:outline-primary focus:rounded-xl">
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className="flex-1 bg-transparent text-primary placeholder-gray-500 focus:outline-primary focus:rounded-xl text-sm px-3 py-2"
+                  className="flex-1 bg-transparent text-primary placeholder-gray-500 focus:outline-none rounded-xl text-sm px-3 py-2"
                   disabled={isLoading}
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="pr-3 text-gray-400 hover:text-primary focus:outline-primary  focus:rounded-xl transition-colors"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                </button>
               </div>
             </div>
 
