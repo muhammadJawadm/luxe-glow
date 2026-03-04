@@ -9,13 +9,20 @@ import { MdArrowDropDown } from "react-icons/md";
 import { sidebarLinks } from "../../components/data";
 import Logo from "../../assets/Logo.svg";
 import { useState } from "react";
-import { logout } from "../../services/authService";
+import { logout, getCurrentUser } from "../../services/authService";
+
+const POS_ONLY_LINKS = ["POS", "POS Sales"];
 
 const Sidebar = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [isPOSOpen, setIsPOSOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const currentUser = getCurrentUser();
+  const isPosUser = currentUser?.role === "pos";
+  const visibleLinks = isPosUser
+    ? sidebarLinks.filter((link) => POS_ONLY_LINKS.includes(link.name))
+    : sidebarLinks;
 
   const handlePOSToggle = () => {
     setIsPOSOpen((prev) => !prev);
@@ -93,7 +100,7 @@ const Sidebar = () => {
                   </Link>
                 </li>
 
-                {sidebarLinks?.map((link) => (
+                {visibleLinks?.map((link) => (
                   <li key={link.name}>
                     {link.subLinks ? (
                       <>

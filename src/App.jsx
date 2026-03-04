@@ -24,6 +24,7 @@ import Inventory from "./pages/Inventory/Inventory";
 import Cart from "./pages/Cart/Cart";
 import Rewards from "./pages/Rewards/Rewards";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { RoleProtectedRoute } from "./components/ProtectedRoute";
 import Report from "./pages/Report/Report";
 function App() {
   return (
@@ -40,26 +41,26 @@ function App() {
           </ProtectedRoute>
         }
       >
-        <Route index element={<Home />} />
-        <Route path="/users" element={<Users />} />
-        <Route path="/category" element={<Categories />} />
-        <Route path="/product" element={<Products />} />
+        <Route index element={<RoleProtectedRoute allowedRoles={["admin_user", "admin"]}><Home /></RoleProtectedRoute>} />
+        <Route path="/users" element={<RoleProtectedRoute allowedRoles={["admin_user", "admin"]}><Users /></RoleProtectedRoute>} />
+        <Route path="/category" element={<RoleProtectedRoute allowedRoles={["admin_user", "admin"]}><Categories /></RoleProtectedRoute>} />
+        <Route path="/product" element={<RoleProtectedRoute allowedRoles={["admin_user", "admin"]}><Products /></RoleProtectedRoute>} />
 
         <Route path="/pos/sell" element={<PosSell />} />
         <Route path="/pos/sales" element={<PosSales />} />
-        <Route path="/product/:id" element={<ProductDetail />} />
-        <Route path="/order" element={<Orders />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/rewards" element={<Rewards />} />
-        <Route path="/ordered-products" element={<OrderedProducts />} />
-        <Route path="/brand" element={<Brand />} />
-        <Route path="/inventory" element={<Inventory />} />
-        <Route path="/offer" element={<Offers />} />
-        <Route path="/notifications" element={<Notifications />} />
-        <Route path="/payment" element={<Payment />} />
-        <Route path="/content" element={<Content />} />
-        <Route path="/discount" element={<Discount />} />
-        <Route path="/reports" element={<Report />} />
+        <Route path="/product/:id" element={<RoleProtectedRoute allowedRoles={["admin_user", "admin"]}><ProductDetail /></RoleProtectedRoute>} />
+        <Route path="/order" element={<RoleProtectedRoute allowedRoles={["admin_user", "admin"]}><Orders /></RoleProtectedRoute>} />
+        <Route path="/cart" element={<RoleProtectedRoute allowedRoles={["admin_user", "admin"]}><Cart /></RoleProtectedRoute>} />
+        <Route path="/rewards" element={<RoleProtectedRoute allowedRoles={["admin_user", "admin"]}><Rewards /></RoleProtectedRoute>} />
+        <Route path="/ordered-products" element={<RoleProtectedRoute allowedRoles={["admin_user", "admin"]}><OrderedProducts /></RoleProtectedRoute>} />
+        <Route path="/brand" element={<RoleProtectedRoute allowedRoles={["admin_user", "admin"]}><Brand /></RoleProtectedRoute>} />
+        <Route path="/inventory" element={<RoleProtectedRoute allowedRoles={["admin_user", "admin"]}><Inventory /></RoleProtectedRoute>} />
+        <Route path="/offer" element={<RoleProtectedRoute allowedRoles={["admin_user", "admin"]}><Offers /></RoleProtectedRoute>} />
+        <Route path="/notifications" element={<RoleProtectedRoute allowedRoles={["admin_user", "admin"]}><Notifications /></RoleProtectedRoute>} />
+        <Route path="/payment" element={<RoleProtectedRoute allowedRoles={["admin_user", "admin"]}><Payment /></RoleProtectedRoute>} />
+        <Route path="/content" element={<RoleProtectedRoute allowedRoles={["admin_user", "admin"]}><Content /></RoleProtectedRoute>} />
+        <Route path="/discount" element={<RoleProtectedRoute allowedRoles={["admin_user", "admin"]}><Discount /></RoleProtectedRoute>} />
+        <Route path="/reports" element={<RoleProtectedRoute allowedRoles={["admin_user", "admin"]}><Report /></RoleProtectedRoute>} />
       </Route>
 
       {/* Catch all - redirect to login */}

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { isAuthenticated, verifySession } from '../services/authService';
+import { isAuthenticated, verifySession, getCurrentUser } from '../services/authService';
 
 /**
  * ProtectedRoute component that wraps protected pages
@@ -47,6 +47,27 @@ const ProtectedRoute = ({ children }) => {
     }
 
     // User is authenticated, render the protected content
+    return children;
+};
+
+/**
+ * RoleProtectedRoute - renders children only if the user's role is in allowedRoles.
+ * POS users are redirected to /pos/sell; others to /login.
+ * Must be used inside ProtectedRoute (authentication is already verified).
+ */
+export const RoleProtectedRoute = ({ children, allowedRoles }) => {
+    const user = getCurrentUser();
+    const location = useLocation();
+
+    if (!user) {
+        return <Navigate to="/login" state={{ from: location }} replace />;
+    }
+
+    if (allowedRoles && !allowedRoles.includes(user.role)) {
+        // POS users get redirected to their allowed page
+        return <Navigate to="/pos/sell" replace />;
+    }
+
     return children;
 };
 

@@ -103,6 +103,15 @@ export const getCurrentUser = () => {
 };
 
 /**
+ * Get the role of the currently authenticated user
+ * Returns 'admin_user', 'pos', or null
+ */
+export const getUserRole = () => {
+    const user = getCurrentUser();
+    return user?.role || null;
+};
+
+/**
  * Verify session is still valid
  */
 export const verifySession = async () => {

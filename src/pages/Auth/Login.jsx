@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { login, isAuthenticated } from "../../services/authService";
+import { login, isAuthenticated, getCurrentUser } from "../../services/authService";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -13,8 +13,13 @@ const Login = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated()) {
-      const from = location.state?.from?.pathname || "/";
-      navigate(from, { replace: true });
+      const user = getCurrentUser();
+      if (user?.role === "pos") {
+        navigate("/pos/sell", { replace: true });
+      } else {
+        const from = location.state?.from?.pathname || "/";
+        navigate(from, { replace: true });
+      }
     }
   }, [navigate, location]);
 
@@ -39,9 +44,13 @@ const Login = () => {
       const result = await login(email, password);
 
       if (result.success) {
-        // Redirect to the page they tried to visit or home
-        const from = location.state?.from?.pathname || "/";
-        navigate(from, { replace: true });
+        // Redirect POS users to POS page, admins to their intended page or home
+        if (result.user?.role === "pos") {
+          navigate("/pos/sell", { replace: true });
+        } else {
+          const from = location.state?.from?.pathname || "/";
+          navigate(from, { replace: true });
+        }
       } else {
         setError(result.error || "Login failed. Please try again.");
       }
