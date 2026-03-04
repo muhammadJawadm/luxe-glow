@@ -11,7 +11,7 @@ import Logo from "../../assets/Logo.svg";
 import { useState } from "react";
 import { logout, getCurrentUser } from "../../services/authService";
 
-const POS_ONLY_LINKS = ["POS", "POS Sales"];
+const POS_ONLY_LINKS = ["POS", "POS Sales", "Orders"];
 
 const Sidebar = () => {
   const [showMenu, setShowMenu] = useState(false);

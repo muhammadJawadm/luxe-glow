@@ -48,11 +48,11 @@ function App() {
 
         <Route path="/pos/sell" element={<PosSell />} />
         <Route path="/pos/sales" element={<PosSales />} />
+        <Route path="/ordered-products" element={<OrderedProducts />} />
         <Route path="/product/:id" element={<RoleProtectedRoute allowedRoles={["admin_user", "admin"]}><ProductDetail /></RoleProtectedRoute>} />
         <Route path="/order" element={<RoleProtectedRoute allowedRoles={["admin_user", "admin"]}><Orders /></RoleProtectedRoute>} />
         <Route path="/cart" element={<RoleProtectedRoute allowedRoles={["admin_user", "admin"]}><Cart /></RoleProtectedRoute>} />
         <Route path="/rewards" element={<RoleProtectedRoute allowedRoles={["admin_user", "admin"]}><Rewards /></RoleProtectedRoute>} />
-        <Route path="/ordered-products" element={<RoleProtectedRoute allowedRoles={["admin_user", "admin"]}><OrderedProducts /></RoleProtectedRoute>} />
         <Route path="/brand" element={<RoleProtectedRoute allowedRoles={["admin_user", "admin"]}><Brand /></RoleProtectedRoute>} />
         <Route path="/inventory" element={<RoleProtectedRoute allowedRoles={["admin_user", "admin"]}><Inventory /></RoleProtectedRoute>} />
         <Route path="/offer" element={<RoleProtectedRoute allowedRoles={["admin_user", "admin"]}><Offers /></RoleProtectedRoute>} />
