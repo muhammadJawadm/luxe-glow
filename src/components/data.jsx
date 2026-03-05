@@ -10,6 +10,7 @@ import {
   MdEventNote,
   MdReceipt,
   MdReceiptLong,
+  MdSupportAgent,
 } from "react-icons/md";
 import { RiShoppingBag3Fill } from "react-icons/ri";
 import { MdAppRegistration } from "react-icons/md";
@@ -49,4 +50,5 @@ export const sidebarLinks = [
   { name: "Content", path: "/content", icon: <MdContentCopy /> },
   { name: "Tax & Delivery Charges", path: "/discount", icon: <AiFillSetting /> },
   { name: "Reports", path: "/reports", icon: <MdReceipt /> },
+  { name: "Customer Service", path: "/customer-service", icon: <MdSupportAgent /> },
 ];

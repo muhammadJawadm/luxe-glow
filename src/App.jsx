@@ -26,6 +26,7 @@ import Rewards from "./pages/Rewards/Rewards";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { RoleProtectedRoute } from "./components/ProtectedRoute";
 import Report from "./pages/Report/Report";
+import CustomerService from "./pages/CustomerService/CustomerService";
 function App() {
   return (
     <Routes>
@@ -61,6 +62,7 @@ function App() {
         <Route path="/content" element={<RoleProtectedRoute allowedRoles={["admin_user", "admin"]}><Content /></RoleProtectedRoute>} />
         <Route path="/discount" element={<RoleProtectedRoute allowedRoles={["admin_user", "admin"]}><Discount /></RoleProtectedRoute>} />
         <Route path="/reports" element={<RoleProtectedRoute allowedRoles={["admin_user", "admin"]}><Report /></RoleProtectedRoute>} />
+        <Route path="/customer-service" element={<RoleProtectedRoute allowedRoles={["admin_user", "admin"]}><CustomerService /></RoleProtectedRoute>} />
       </Route>
 
       {/* Catch all - redirect to login */}
