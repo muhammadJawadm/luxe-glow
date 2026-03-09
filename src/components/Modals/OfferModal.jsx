@@ -184,7 +184,6 @@ const OfferModal = ({ offer, onClose, isOpen, onSave }) => {
         expire_at: formData.expire_at,
         image_url: imageUrl,
         discount: formData.discount !== "" ? parseInt(formData.discount) : null,
-        brand_id: null,
       };
 
       if (offer) {

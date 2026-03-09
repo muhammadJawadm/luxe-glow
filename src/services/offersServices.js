@@ -4,7 +4,7 @@ import { supabase } from "../lib/supabase";
 const offersService = createBaseService('offers');
 
 export const fetchOffers = (page, limit) => offersService.getAll({
-    select: "*, brands(*), offers_products(products(*, categories(*), product_images(*)))",
+    select: "*, offers_products(products(*, categories(*), product_images(*)))",
     page,
     limit,
     orderBy: "created_at",
@@ -13,7 +13,7 @@ export const fetchOffers = (page, limit) => offersService.getAll({
 
 export const fetchOfferById = (offerId) => offersService.getById(
     offerId,
-    "*, products(*, categories(*), product_images(*)), brands(*), offers_products(products(*, categories(*), product_images(*)))"
+    "*, products(*, categories(*), product_images(*)), offers_products(products(*, categories(*), product_images(*)))"
 );
 
 export const createOffer = async (offerData, productIds) => {
